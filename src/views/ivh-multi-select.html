@@ -1,0 +1,74 @@
+
+<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}">
+  <button class="btn btn-default dropdown-toggle" type="button"
+      ivh-multi-select-stay-open
+      ng-click="ms.isOpen = !ms.isOpen">
+    <span ng-transclude></span>
+    <span class="caret"></span>
+  </button>
+
+  <ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"
+      ivh-multi-select-stay-open>
+    <li role="presentation">
+      <a class="ms-tools">
+        <button class="btn btn-default btn-sm"
+            ng-click="ms.selectAllVisible()">
+          <span class="glyphicon glyphicon-ok"></span>
+          All
+        </button>
+
+        <button class="btn btn-default btn-sm"
+            ng-click="ms.selectAllVisible(false)">
+          <span class="glyphicon glyphicon-remove"></span>
+          None
+        </button>
+
+        <button class="pull-right btn btn-default btn-sm"
+            ng-click="ms.filterString = ''">
+          Clear
+        </button>
+      </a>
+    </li>
+    <li role="presentation">
+      <a class="ms-tools">
+        <input class="form-control" type="text"
+            placeholder="Search..."
+            ng-model="ms.filterString"
+            ivh-multi-select-autofocus>
+      </a>
+    </li>
+    <li role="presentation" class="divider"></li>
+    <li role="presentation" class="ms-item"
+        ng-repeat="item in ms.items | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"
+        selection-model
+        selection-model-mode="multi-additive"
+        selection-model-type="checkbox">
+      <a role="menuitem">
+        <!-- Must stop propagation on checkbox clicks when nested within the `a`
+             tag otherwise `a` fires a click too and undoes the first click. We
+             want to honor the actual checkbox click. -->
+        <input type="checkbox" ng-click="$event.stopPropagation()" />
+        {{:: item[ms.labelAttr]}}
+      </a>
+    </li>
+
+    <li role="presentation" ng-hide="ms.items.length">
+      <a class="ms-tools">
+        <em class="text-muted">
+          Nothing to show
+        </em>
+      </a>
+    </li>
+
+    <li role="presentation" ng-if="ms.hasPager && ms.needsPager">
+      <div class="text-center"
+          ivh-pager
+          ivh-pager-total="ms.items.length"
+          ivh-pager-page-number="ms.ixPage"
+          ivh-pager-page-size="ms.sizePage"
+          ivh-pager-button-size="'sm'">
+      </div>
+    </li>
+  </ul>
+</div>
+

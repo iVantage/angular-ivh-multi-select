@@ -1,0 +1,24 @@
+{
+  "name": "angular-ivh-multi-select",
+  "version": "0.0.1",
+  "homepage": "https://github.com/iVantage/angular-ivh-multi-select",
+  "license": "MIT",
+  "main": [
+    "dist/ivh-multi-select.js",
+    "dist/ivh-multi-select.css"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test"
+  ],
+  "dependencies": {
+    "angular": "^1.2",
+    "selection-model": "angular-selection-model#~0.9.1"
+  },
+  "devDependencies": {
+    "jquery": "~2.1.4",
+    "angular-mocks": "^1.2"
+  }
+}

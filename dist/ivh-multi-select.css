@@ -1,0 +1,6 @@
+.ivh-multi-select .ms-tools:hover {
+  background-color: white;
+}
+.ivh-multi-select .ms-item {
+  cursor: pointer;
+}
