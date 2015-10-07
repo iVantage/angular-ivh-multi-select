@@ -122,6 +122,19 @@ module.exports = function(grunt) {
     }
   });
 
+  grunt.registerTask('ng-inline', function() {
+    // Look for "templateUrl"s in concat:dist and swap them out for "template"
+    // with the template's contents.
+    var s = grunt.file.read('dist/ivh-multi-select.js');
+    s = s.replace(/templateUrl: '([^']+)'/g, function(match, $1) {
+      var c = grunt.file.read($1)
+        .replace(/\s*\r?\n\s*/g, '\\n')
+        .replace(/'/g, '\\\'');
+      return 'template: \'' + c + '\'';
+    });
+    grunt.file.write('dist/ivh-multi-select.js', s);
+  });
+
   // Load plugins
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
@@ -133,6 +146,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build:scripts', [
     'concat',
+    'ng-inline',
     'uglify'
   ]);
 
