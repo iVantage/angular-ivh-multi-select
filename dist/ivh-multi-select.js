@@ -101,7 +101,7 @@ angular.module('ivh.multiSelect')
          *
          * Toggled whenever the user clicks the ol' button
          */
-        ms.isOpen = true;
+        ms.isOpen = false;
 
         /**
          * Attach the passed items to our controller for consistent interface
