@@ -118,9 +118,12 @@ angular.module('ivh.multiSelect')
          * hide/show the pager as appropriate.
          */
         $scope.$watch('ms.filterString', function(newFilterString) {
-          var filteredItems = filterFilter($scope.items, newFilterString);
-          ms.items = filteredItems;
-          ms.needsPager = filteredItems.length > pagerPageSize;
+          var allItems = $scope.items;
+          if(allItems) {
+            var filteredItems = filterFilter(allItems, newFilterString);
+            ms.items = filteredItems;
+            ms.needsPager = filteredItems.length > pagerPageSize;
+          }
         });
 
         /**
