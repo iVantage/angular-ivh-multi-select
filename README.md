@@ -43,11 +43,18 @@ to select complete with checkboxes and pagination if availabe.
 
 We're using the [selection-model][sm] component to manage selections internally.
 You can configure this directive's behavior by working with the
-[selectionModelOptionsProvider][sm-opt]. Note that at the moment we are forcing
-checkboxes and a "multi-additive" selection model.
+[selectionModelOptionsProvider][sm-opt]. Inline `selection-model-*` attributes
+will also be forwarded to the underlying selection model:
 
-Eventually we hope to make this directive configurable to forward along
-parameters to selection model.
+```
+```html
+<div ivh-multi-select
+     ivh-multi-select-items="myCollection"
+     selection-model-selected-attribute="'customSelectedAttr'">
+  Choose some items!
+</div>
+```
+```
 
 
 ### Pagination
@@ -76,6 +83,7 @@ needed when you make changes to source files.
 
 ## Changelog
 
+2015-10-08 v0.2.0 Forward options to selection model
 2015-10-07 v0.1.0 Initial release
 
 
