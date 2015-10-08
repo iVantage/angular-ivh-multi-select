@@ -11,7 +11,17 @@ angular.module('ivh.multiSelect')
     'use strict';
     return {
       scope: {
-        items: '=ivhMultiSelectItems'
+        items: '=ivhMultiSelectItems',
+        labelAttr: '=ivhMultiSelectLabelAttribute',
+
+        /**
+         * Options for selection model
+         */
+        selType: '=selectionModelType',
+        selMode: '=selectionModelMode',
+        selAttr: '=selectionModelSelectedAttribute',
+        selClass: '=selectionModelSelectedClass',
+        selCleanup: '=selectionModelCleanupStrategy'
       },
       restrict: 'AE',
       templateUrl: 'src/views/ivh-multi-select.html',
@@ -22,17 +32,44 @@ angular.module('ivh.multiSelect')
         var ms = this;
 
         /**
-         * @todo Forward options to selection model and ivh-pager
+         * @todo Forward options to ivh-pager
          */
-        var selectedAttr = selectionModelOptions.get().selectedAttribute
-          , labelAttr = 'label'
-          , pagerPageSize = 10
+        var pagerPageSize = 10
           , pagerUsePager = true;
 
         /**
+         * We're embedding selection-model
          *
+         * Forward supported `selection-model-*` attributes to the underlying
+         * directive.
          */
-        ms.labelAttr = labelAttr;
+        ms.sel = angular.extend({},
+          // Global defaults
+          selectionModelOptions.get(),
+          // Our defaults
+          {
+            type: 'checkbox',
+            mode: 'multi-additive'
+          });
+
+        // Fold inline props over everything if provided
+        angular.forEach([
+          // [ **selection model prop**, **value** ]
+          ['type', $scope.selType],
+          ['mode', $scope.selMode],
+          ['selectedAttribute', $scope.selAttr],
+          ['selectedClass', $scope.selClass],
+          ['cleanupStategy', $scope.selCleanup]
+        ], function(p) {
+          if(p[1]) {
+            ms.sel[p[0]] = p[1];
+          }
+        });
+
+        /**
+         * The collection item attribute to display as a label
+         */
+        ms.labelAttr = $scope.labelAttr || 'label';
 
         /**
          * Whether or not the dropdown is displayed
@@ -69,7 +106,8 @@ angular.module('ivh.multiSelect')
          */
         ms.selectAllVisible = function(isSelected) {
           isSelected = angular.isDefined(isSelected) ?  isSelected : true;
-          var itemsToSelect = filterFilter(ms.items, ms.filterString);
+          var itemsToSelect = filterFilter(ms.items, ms.filterString)
+            , selectedAttr = ms.sel.selectedAttribute;
           angular.forEach(itemsToSelect, function(item) {
             item[selectedAttr] = isSelected;
           });
