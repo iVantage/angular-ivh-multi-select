@@ -55,15 +55,23 @@ angular.module('ivh.multiSelect')
         // Fold inline props over everything if provided
         angular.forEach([
           // [ **selection model prop**, **value** ]
-          ['type', $scope.selType],
-          ['mode', $scope.selMode],
-          ['selectedAttribute', $scope.selAttr],
-          ['selectedClass', $scope.selClass],
-          ['cleanupStategy', $scope.selCleanup]
+          ['type', 'selType'],
+          ['mode', 'selMode'],
+          ['selectedAttribute', 'selAttr'],
+          ['selectedClass', 'selClass'],
+          ['cleanupStategy', 'selCleanup']
         ], function(p) {
-          if(p[1]) {
-            ms.sel[p[0]] = p[1];
+          if($scope[1]) {
+            ms.sel[p[0]] = $scope[1];
           }
+
+          var unwatch = $scope.$watch(p[1], function(newVal) {
+            if(newVal) {
+              ms.sel[p[0]] = newVal;
+            }
+          });
+
+          $scope.$on('$destroy', unwatch);
         });
 
         /**
