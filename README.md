@@ -7,7 +7,7 @@
 
 IVH Mutli Select aims to provide a robust mutliselect component while keeping a
 careful eye on performance and minizing watch counts. While collapsed IVH Multi
-Select will create just 4 watchers, and only ~40 while expanded.
+Select will create just ~10 watchers, and only ~40 while expanded.
 
 Note that IVH Multi Select assumes Bootstrap 3 styles.
 
