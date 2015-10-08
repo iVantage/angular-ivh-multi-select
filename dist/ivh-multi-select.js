@@ -146,6 +146,13 @@ angular.module('ivh.multiSelect')
         ms.items = $scope.items;
 
         /**
+         * If $scope.items breaks reference we'll need to update
+         */
+        $scope.$watch('items', function(newItems) {
+          ms.items = newItems;
+        });
+
+        /**
          * The filter string entered by the user into our input control
          */
         ms.filterString = '';
@@ -193,13 +200,24 @@ angular.module('ivh.multiSelect')
          *
          * ... unless the element has been tagged with
          * ivh-multi-select-stay-open... ;)
+         *
+         * Be a good doobee and clean up this click handler when our scope is
+         * destroyed
          */
-        $document.find('body').on('click', function($event) {
+        var $bod = $document.find('body');
+
+        var collapseMe = function($event) {
           var evt = $event.originalEvent || $event;
           if(!evt.ivhMultiSelectIgnore) {
             ms.isOpen = false;
             $scope.$digest();
           }
+        };
+
+        $bod.on('click', collapseMe);
+
+        $scope.$on('$destroy', function() {
+          $bod.off('click', collapseMe);
         });
       }]
     };
