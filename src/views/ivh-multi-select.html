@@ -41,7 +41,7 @@
     </li>
     <li role="presentation" class="divider"></li>
     <li role="presentation" class="ms-item"
-        ng-repeat="item in ms.items | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"
+        ng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"
         selection-model
         selection-model-mode="ms.sel.mode"
         selection-model-type="ms.sel.type"
@@ -64,7 +64,7 @@
       </a>
     </li>
 
-    <li role="presentation" ng-if="ms.hasPager && ms.needsPager">
+    <li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">
       <div class="text-center"
           ivh-pager
           ivh-pager-total="ms.items.length"

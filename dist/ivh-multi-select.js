@@ -86,7 +86,7 @@ angular.module('ivh.multiSelect')
         selCleanup: '=selectionModelCleanupStrategy'
       },
       restrict: 'AE',
-      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}">\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation">\n<a class="ms-tools">\n<button class="btn btn-default btn-sm"\nng-click="ms.selectAllVisible()">\n<span class="glyphicon glyphicon-ok"></span>\nAll\n</button>\n<button class="btn btn-default btn-sm"\nng-click="ms.selectAllVisible(false)">\n<span class="glyphicon glyphicon-remove"></span>\nNone\n</button>\n<button class="btn btn-default btn-sm"\nng-show="ms.filterString.length"\nng-click="ms.filterString = \'\'">\nClear\n</button>\n</a>\n</li>\n<li role="presentation">\n<a class="ms-tools">\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus>\n</a>\n</li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: item[ms.labelAttr]}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length">\n<a class="ms-tools">\n<em class="text-muted">\nNothing to show\n</em>\n</a>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.needsPager">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
+      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}">\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation">\n<a class="ms-tools">\n<button class="btn btn-default btn-sm"\nng-click="ms.selectAllVisible()">\n<span class="glyphicon glyphicon-ok"></span>\nAll\n</button>\n<button class="btn btn-default btn-sm"\nng-click="ms.selectAllVisible(false)">\n<span class="glyphicon glyphicon-remove"></span>\nNone\n</button>\n<button class="btn btn-default btn-sm"\nng-show="ms.filterString.length"\nng-click="ms.filterString = \'\'">\nClear\n</button>\n</a>\n</li>\n<li role="presentation">\n<a class="ms-tools">\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus>\n</a>\n</li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: item[ms.labelAttr]}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length">\n<a class="ms-tools">\n<em class="text-muted">\nNothing to show\n</em>\n</a>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
       transclude: true,
       controllerAs: 'ms',
       controller: ['$document', '$scope', '$injector', 'filterFilter', 'selectionModelOptions',
@@ -150,17 +150,10 @@ angular.module('ivh.multiSelect')
 
         /**
          * Attach the passed items to our controller for consistent interface
+         *
+         * Will be updated from the view as `$scope.items` changes
          */
         ms.items = $scope.items;
-
-        /**
-         * If $scope.items breaks reference we'll need to update
-         */
-        $scope.$watch('items', function(newItems) {
-          var filteredItems = filterFilter(newItems, ms.filterString);
-          ms.items = filteredItems;
-          ms.needsPager = filteredItems.length > pagerPageSize;
-        });
 
         /**
          * The filter string entered by the user into our input control
@@ -175,7 +168,6 @@ angular.module('ivh.multiSelect')
         ms.hasPager = pagerUsePager && $injector.has('ivhPaginateFilter');
         ms.ixPage = 0;
         ms.sizePage = pagerPageSize;
-        ms.needsPager = false;
 
         /**
          * Select all (or deselect) *not filtered out* items
@@ -185,25 +177,11 @@ angular.module('ivh.multiSelect')
          */
         ms.selectAllVisible = function(isSelected) {
           isSelected = angular.isDefined(isSelected) ?  isSelected : true;
-          var itemsToSelect = filterFilter(ms.items, ms.filterString)
-            , selectedAttr = ms.sel.selectedAttribute;
-          angular.forEach(itemsToSelect, function(item) {
+          var selectedAttr = ms.sel.selectedAttribute;
+          angular.forEach(ms.items, function(item) {
             item[selectedAttr] = isSelected;
           });
         };
-
-        /**
-         * When the user enters a new filter we should update our list and
-         * hide/show the pager as appropriate.
-         */
-        $scope.$watch('ms.filterString', function(newFilterString) {
-          var allItems = $scope.items;
-          if(allItems) {
-            var filteredItems = filterFilter(allItems, newFilterString);
-            ms.items = filteredItems;
-            ms.needsPager = filteredItems.length > pagerPageSize;
-          }
-        });
 
         /**
          * Clicks on the body should close this multiselect
