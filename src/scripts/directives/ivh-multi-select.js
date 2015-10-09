@@ -95,7 +95,9 @@ angular.module('ivh.multiSelect')
          * If $scope.items breaks reference we'll need to update
          */
         $scope.$watch('items', function(newItems) {
-          ms.items = newItems;
+          var filteredItems = filterFilter(newItems, ms.filterString);
+          ms.items = filteredItems;
+          ms.needsPager = filteredItems.length > pagerPageSize;
         });
 
         /**
