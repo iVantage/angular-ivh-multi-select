@@ -73,4 +73,43 @@ describe('Directive: ivhMultiSelect', function() {
 
     expect(liText).toBe('foo');
   });
+
+  it('should add items to the menu when added later', function() {
+    scope.items = [{label: 'foo'}];
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    scope.items.push({label: 'bar'});
+    scope.$apply();
+    var numLis = $el.find('li.ms-item').length;
+
+    expect(numLis).toBe(2);
+  });
+
+  it('should add update the list when it changes reference', function() {
+    scope.items = [{label: 'foo'}];
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    scope.items = [{label: 'a'}, {label: 'b'}, {label: 'c'}];
+
+    scope.$apply();
+    var numLis = $el.find('li.ms-item').length;
+
+    expect(numLis).toBe(3);
+  });
 });
