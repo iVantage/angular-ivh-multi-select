@@ -56,4 +56,21 @@ describe('Directive: ivhMultiSelect', function() {
 
     expect(numWatchers1).toBe(numWatchers2);
   });
+
+  it('should display items when the button is clicked', function() {
+    scope.items = [{label: 'foo'}];
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    var liText = $el.find('li.ms-item').first().text().trim();
+
+    expect(liText).toBe('foo');
+  });
 });
