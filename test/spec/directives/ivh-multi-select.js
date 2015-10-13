@@ -93,7 +93,7 @@ describe('Directive: ivhMultiSelect', function() {
     expect(numLis).toBe(2);
   });
 
-  it('should add update the list when it changes reference', function() {
+  it('should update the list when it changes reference', function() {
     scope.items = [{label: 'foo'}];
 
     var $el = c([
