@@ -32,4 +32,28 @@ describe('Directive: ivhMultiSelect', function() {
     var tText = $el.text().trim();
     expect(tText).toBe('Blargus');
   });
+
+  it('Its watcher count should be invariant in the number of list items while collapsed', function() {
+    scope.items1 = [{label: 'foo'}];
+    scope.items2 = [{label: 'foo'}, {label: 'bar'}, {label: 'wowza'}];
+
+    var $el1 = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items1">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    var $el2 = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items2">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    var numWatchers1 = countWacthers($el1);
+    var numWatchers2 = countWacthers($el2);
+
+    expect(numWatchers1).toBe(numWatchers2);
+  });
 });

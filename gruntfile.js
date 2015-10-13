@@ -93,7 +93,8 @@ module.exports = function(grunt) {
             'bower_components/jquery/dist/jquery.js',
             'bower_components/angular/angular.js',
             'bower_components/angular-mocks/angular-mocks.js',
-            'bower_components/selection-model/dist/selection-model.js'
+            'bower_components/selection-model/dist/selection-model.js',
+            'test/helpers/count-watchers.js'
           ]
         }
       }
