@@ -85,13 +85,15 @@ module.exports = function(grunt) {
 
     jasmine: {
       spec: {
-        src: ['src/scripts/*.js', 'src/scripts/**/*.js'],
+        // Load dist files to have external templates inlined
+        src: ['dist/ivh-multi-select.js'],
         options: {
           specs: 'test/spec/**/*.js',
           vendor: [
             'bower_components/jquery/dist/jquery.js',
             'bower_components/angular/angular.js',
-            'bower_components/angular-mocks/angular-mocks.js'
+            'bower_components/angular-mocks/angular-mocks.js',
+            'bower_components/selection-model/dist/selection-model.js'
           ]
         }
       }
@@ -100,7 +102,7 @@ module.exports = function(grunt) {
     watch: {
       scripts: {
         files: 'src/scripts/**/*.js',
-        tasks: ['test', 'build:scripts']
+        tasks: ['test'] // builds scripts
       },
       styles: {
         files: 'src/styles/**/*.less',
@@ -108,7 +110,7 @@ module.exports = function(grunt) {
       },
       tests: {
         files: 'test/spec/**/*.js',
-        tasks: ['test']
+        tasks: ['testlte']
       }
     },
 
@@ -139,9 +141,18 @@ module.exports = function(grunt) {
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
   grunt.registerTask('test', [
+    'build:scripts',
     'jshint',
     'jscs',
-    //'jasmine'
+    'build:scripts',
+    'jasmine'
+  ]);
+
+  grunt.registerTask('testlte', [
+    'build:scripts',
+    'jshint',
+    'jscs',
+    'jasmine'
   ]);
 
   grunt.registerTask('build:scripts', [
@@ -162,8 +173,8 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', [
     'clean',
-    'test',
-    'build'
+    'test', // builds scripts
+    'build:styles'
   ]);
 
 };
