@@ -1,5 +1,5 @@
 {
-  "predef": ["angular", "module", "inject", "describe", "beforeEach", "afterEach", "it", "expect"],
+  "predef": ["angular", "module", "inject", "describe", "beforeEach", "afterEach", "it", "expect", "jQuery"],
   "browser": true,
   "bitwise": true,
   "camelcase": false,
