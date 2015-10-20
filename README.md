@@ -70,6 +70,32 @@ This is not a hard dependency, if you do not include IVH Pager your lists will
 be displayed in full.
 
 
+### Tracking Selected IDs
+
+We're using selection-model internally to manage selections. As a convenience we
+provide a filter, `ivhMultiSelectCollect`, to help convert these to arrays of
+IDs if that is more in keeping with your use case. Note that this behavior is
+only supported when using the `mutli-additive` selection mode (the default).
+
+```
+<!--
+  The array demo.selectedIds will be updated whenever an item is clicked on or
+  the user hits the "All" or "None" buttons.
+-->
+<div ivh-multi-select
+     ivh-multi-select-items="demo.items"
+     selection-model-on-change="demo.selectedIds | ivhMultiSelectCollect:item">
+</div>
+
+<!--
+  You may also provide an id attribute and selected attribute if needed.
+-->
+<div ivh-multi-select
+     ivh-multi-select-items="demo.items"
+     selection-model-on-change="demo.selectedIds | ivhMultiSelectCollect:item:'id':'selected'">
+</div>
+```
+
 ## Testing
 
 Use `npm test` to run the full suite of linting, style checks, and unit tests.
