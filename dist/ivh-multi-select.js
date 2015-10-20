@@ -83,10 +83,16 @@ angular.module('ivh.multiSelect')
         selMode: '=selectionModelMode',
         selAttr: '=selectionModelSelectedAttribute',
         selClass: '=selectionModelSelectedClass',
-        selCleanup: '=selectionModelCleanupStrategy'
+        selCleanup: '=selectionModelCleanupStrategy',
+
+        /**
+         * Should be an angular expression in which `item` is the collection
+         * item that has changed selected state
+         */
+        selOnChange: '&selectionModelOnChange'
       },
       restrict: 'AE',
-      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}">\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation">\n<a class="ms-tools">\n<button class="btn btn-default btn-sm"\nng-click="ms.selectAllVisible()">\n<span class="glyphicon glyphicon-ok"></span>\nAll\n</button>\n<button class="btn btn-default btn-sm"\nng-click="ms.selectAllVisible(false)">\n<span class="glyphicon glyphicon-remove"></span>\nNone\n</button>\n<button class="btn btn-default btn-sm"\nng-show="ms.filterString.length"\nng-click="ms.filterString = \'\'">\nClear\n</button>\n</a>\n</li>\n<li role="presentation">\n<a class="ms-tools">\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus>\n</a>\n</li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: item[ms.labelAttr]}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length">\n<a class="ms-tools">\n<em class="text-muted">\nNothing to show\n</em>\n</a>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
+      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}">\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation">\n<a class="ms-tools">\n<button class="btn btn-default btn-sm"\nng-click="ms.selectAllVisible()">\n<span class="glyphicon glyphicon-ok"></span>\nAll\n</button>\n<button class="btn btn-default btn-sm"\nng-click="ms.selectAllVisible(false)">\n<span class="glyphicon glyphicon-remove"></span>\nNone\n</button>\n<button class="btn btn-default btn-sm"\nng-show="ms.filterString.length"\nng-click="ms.filterString = \'\'">\nClear\n</button>\n</a>\n</li>\n<li role="presentation">\n<a class="ms-tools">\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus>\n</a>\n</li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nng-click="ms.sel.onChange(item)"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: item[ms.labelAttr]}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length">\n<a class="ms-tools">\n<em class="text-muted">\nNothing to show\n</em>\n</a>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
       transclude: true,
       controllerAs: 'ms',
       controller: ['$document', '$scope', '$injector', 'filterFilter', 'selectionModelOptions',
@@ -137,6 +143,13 @@ angular.module('ivh.multiSelect')
         });
 
         /**
+         * Provide a way for the outside world to know about selection changes
+         */
+        ms.sel.onChange = function(item) {
+          $scope.selOnChange({item: item});
+        };
+
+        /**
          * The collection item attribute to display as a label
          */
         ms.labelAttr = $scope.labelAttr || 'label';
@@ -180,6 +193,7 @@ angular.module('ivh.multiSelect')
           var selectedAttr = ms.sel.selectedAttribute;
           angular.forEach(ms.items, function(item) {
             item[selectedAttr] = isSelected;
+            ms.sel.onChange(item);
           });
         };
 

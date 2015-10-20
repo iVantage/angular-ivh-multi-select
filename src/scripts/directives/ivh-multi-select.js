@@ -21,7 +21,13 @@ angular.module('ivh.multiSelect')
         selMode: '=selectionModelMode',
         selAttr: '=selectionModelSelectedAttribute',
         selClass: '=selectionModelSelectedClass',
-        selCleanup: '=selectionModelCleanupStrategy'
+        selCleanup: '=selectionModelCleanupStrategy',
+
+        /**
+         * Should be an angular expression in which `item` is the collection
+         * item that has changed selected state
+         */
+        selOnChange: '&selectionModelOnChange'
       },
       restrict: 'AE',
       templateUrl: 'src/views/ivh-multi-select.html',
@@ -75,6 +81,13 @@ angular.module('ivh.multiSelect')
         });
 
         /**
+         * Provide a way for the outside world to know about selection changes
+         */
+        ms.sel.onChange = function(item) {
+          $scope.selOnChange({item: item});
+        };
+
+        /**
          * The collection item attribute to display as a label
          */
         ms.labelAttr = $scope.labelAttr || 'label';
@@ -118,6 +131,7 @@ angular.module('ivh.multiSelect')
           var selectedAttr = ms.sel.selectedAttribute;
           angular.forEach(ms.items, function(item) {
             item[selectedAttr] = isSelected;
+            ms.sel.onChange(item);
           });
         };
 

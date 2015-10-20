@@ -42,6 +42,7 @@
     <li role="presentation" class="divider"></li>
     <li role="presentation" class="ms-item"
         ng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"
+        ng-click="ms.sel.onChange(item)" 
         selection-model
         selection-model-mode="ms.sel.mode"
         selection-model-type="ms.sel.type"
