@@ -46,14 +46,12 @@ You can configure this directive's behavior by working with the
 [selectionModelOptionsProvider][sm-opt]. Inline `selection-model-*` attributes
 will also be forwarded to the underlying selection model:
 
-```
 ```html
 <div ivh-multi-select
      ivh-multi-select-items="myCollection"
      selection-model-selected-attribute="'customSelectedAttr'">
   Choose some items!
 </div>
-```
 ```
 
 
