@@ -58,6 +58,11 @@ angular.module('ivh.multiSelect')
             mode: 'multi-additive'
           });
 
+        /**
+         * Disable the 'All'/'None' buttons when in single select mode
+         */
+        ms.enableMultiSelect = 'single' !== ms.sel.mode;
+
         // Fold inline props over everything if provided
         angular.forEach([
           // [ **selection model prop**, **value** ]
@@ -74,6 +79,9 @@ angular.module('ivh.multiSelect')
           var unwatch = $scope.$watch(p[1], function(newVal) {
             if(newVal) {
               ms.sel[p[0]] = newVal;
+              if('mode' === p[0]) {
+                ms.enableMultiSelect = 'single' !== newVal;
+              }
             }
           });
 
