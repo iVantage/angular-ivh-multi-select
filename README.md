@@ -112,9 +112,9 @@ needed when you make changes to source files.
 
 ## Changelog
 
-2015-10-20 v0.2.0 Forward selection-model-on-change
-2015-10-08 v0.2.0 Forward options to selection model
-2015-10-07 v0.1.0 Initial release
+- 2015-10-20 v0.2.0 Forward selection-model-on-change
+- 2015-10-08 v0.2.0 Forward options to selection model
+- 2015-10-07 v0.1.0 Initial release
 
 
 ## License
