@@ -5,7 +5,7 @@
 
 > An elegant and efficient multi select for AngularJS apps.
 
-IVH Mutli Select aims to provide a robust mutliselect component while keeping a
+IVH Multi Select aims to provide a robust multiselect component while keeping a
 careful eye on performance and minizing watch counts. While collapsed IVH Multi
 Select will create just ~10 watchers, and only ~40 while expanded.
 
@@ -75,7 +75,7 @@ be displayed in full.
 We're using selection-model internally to manage selections. As a convenience we
 provide a filter, `ivhMultiSelectCollect`, to help convert these to arrays of
 IDs if that is more in keeping with your use case. Note that this behavior is
-only supported when using the `mutli-additive` selection mode (the default).
+only supported when using the `multi-additive` selection mode (the default).
 
 ```
 <!--
