@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="favicon.ico">
+
+    <title>IVH Mutli Select - iVantage</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="//ivantagecdn.com/ivantage/bootstrap/v1.0.3/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/default.min.css" rel="stylesheet">
+    <link href="//rawgit.com/iVantage/angular-ivh-multi-select/master/dist/ivh-multi-select.css" rel="stylesheet">
+    <link href="main.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Pre render scripts -->
+    <script src="//ivantagecdn.com/vendors/jquery/jquery-1.10.2/jquery.min.js"></script>
+    <script src="//ivantagecdn.com/ivantage/bootstrap/v1.0.3/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.7/angular.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        $('pre.code').each(function(i, block) {
+          hljs.highlightBlock(block);
+        });
+      }); 
+    </script>
+  </head>
+
+  <body ng-app="demo">
+
+    <!-- Static navbar -->
+    <nav class="navbar navbar-default navbar-static-top">
+      <div class="container">
+        <div class="col-md-8 col-md-offset-2">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">IVH Mutli Select</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li><a href="https://github.com/iVantage/angular-ivh-multi-select">Project Home</a></li>
+              <li><a href="https://github.com/iVantage/angular-ivh-multi-select/issues">Issues</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </nav>
+
+
+    <div class="container">
+      <div class="col-md-8 col-md-offset-2">
+        <!-- Main component for a primary marketing message or call to action -->
+        <div class="jumbotron">
+          <h1>IVH Mutli Select</h1>
+          <p>A simple, performant multi select component for AngularJS apps.</p>
+          <p>
+            <a class="btn btn-lg btn-primary" href="https://github.com/iVantage/angular-ivh-multi-select" role="button">Go to the code &raquo;</a>
+          </p>
+        </div>
+
+        <div class="row" ng-controller="SillyCtrl as silly" ng-cloak>
+          <div class="col-md-5">
+            <h3>First, A Demo</h3>
+            <p>The demo at right shows an, ever so slightly more than minimal,
+            application of IVH Mulit Select.</p>
+            <p>By default the directive uses <a
+              href="https://github.com/jtrussell/angular-selection-model">Selection
+            Model</a> to track selections. Here we're also using a filter
+            provided by IVH Multi Select to persist selection changes to an array
+            of item Ids.</p>
+          </div>
+          <div class="col-md-7">
+            <ul class="nav nav-tabs">
+              <li class="active"><a href="#ex1_demo">Demo</a></li>
+              <li><a href="#ex1_code">Code</a></li>
+            </ul>
+
+            <div class="tab-content">
+              <div class="tab-pane active" id="ex1_demo">
+                <p>You've selected:
+                  {{silly.selectedIds | ivhPluckAndJoin:'.'}}
+                  <em ng-hide="silly.selectedIds.length">
+                    Nothng yet.
+                  </em>
+                </p>
+                <div ivh-multi-select
+                    ivh-multi-select-items="silly.items"
+                    selection-model-on-change="silly.selectedIds | ivhMultiSelectCollect:item:'id'">
+                  {{silly.selectedIds.length}} silly item(s) selected
+                </div>
+              </div>
+              <div class="tab-pane" id="ex1_code">
+<pre class="code" ng-non-bindable>&lt;p&gt;You've selected:
+  {{silly.selectedIds | ivhPluckAndJoin:'.'}}
+  &lt;em ng-hide="silly.selectedIds.length"&gt;
+    Nothng yet.
+  &lt;/em&gt;
+&lt;/p&gt;
+
+&lt;div ivh-multi-select
+     ivh-multi-select-items="silly.items"
+     selection-model-on-change="silly.selectedIds
+       | ivhMultiSelectCollect:item:'id'"&gt;
+  {{silly.selectedIds.length}} silly item(s) selected
+&lt;/div&gt;</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <h3>Why IVH Multi Select?</h3>
+            <p>The goal of IVH Multi Select is to provide a simple yet elegant
+            multi select component while keeping a close eye on performance.</p>
+            <p>Sometimes you need to present a large list of items to your user.
+            That doesn't mean you should have to create tons and tons of
+            watcher's that end up bogging down your UI. By design IVH Multi
+            Select will creates the same number of watchers for all closed menus
+            - it's one of our unit tests. Even active menus (with paging) have a
+            hard cap on watcher counts (~50) regardless of the number of items
+            in your list.</p>
+            <p>IVH Multi Select uses Bootstrap styles. Multi select menus will
+            be styled to match your Bootstrap app without any extra effort.</p>
+          </div>
+        </div>
+
+        <div class="row" ng-controller="SillyCtrl as silly">
+          <div class="col-md-12">
+            <h3>More</h3>
+            <p>The the <a
+                href="https://github.com/iVantage/angular-ivh-multi-select">project
+              README</a> for more information and examples.</p>
+          </div>
+        </div>
+
+        <footer class="text-muted">
+          <hr />
+          <p class="pull-left">&copy;iVantage 2015</p>
+        </footer>
+      </div>
+    </div> <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//rawgit.com/jtrussell/angular-selection-model/master/dist/selection-model.js"></script>
+    <script src="//rawgit.com/iVantage/angular-ivh-pager/master/dist/ivh-pager.js"></script>
+    <script src="//rawgit.com/iVantage/angular-ivh-multi-select/master/dist/ivh-multi-select.js"></script>
+    <script src="//rawgit.com/iVantage/angular-ivh-pluck-and-join/master/dist/ivh-pluck-and-join.js"></script>
+    <script src="main.js" type="text/javascript" charset="utf-8"></script>
+  </body>
+</html>
+
