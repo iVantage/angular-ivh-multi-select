@@ -112,4 +112,27 @@ describe('Directive: ivhMultiSelect', function() {
 
     expect(numLis).toBe(3);
   });
+
+  it('should allow a custom label expression', function() {
+    scope.items = [{
+      name: 'Foo',
+      num: 5
+    }, {
+      name: 'Bar',
+      num: 9
+    }];
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items"',
+          'ivh-multi-select-label-expression="\'{{item.num}}: {{item.name}}\'">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    var t = $el.find('li.ms-item').first().text().trim();
+    expect(t).toBe('5: Foo');
+  });
 });

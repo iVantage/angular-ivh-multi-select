@@ -39,7 +39,7 @@ At a minimum you must provide a collection of items to select from:
 ```
 
 IVH Multi Select will display a button that when clicked shows a menu of items
-to select complete with checkboxes and pagination if availabe. 
+to select complete with checkboxes and pagination if availabe.
 
 We're using the [selection-model][sm] component to manage selections internally.
 You can configure this directive's behavior by working with the
@@ -58,6 +58,29 @@ This includes `selection-model-on-change` with the notable exception that when
 this expression is evaluated IVH Multi Select will provide a scope variable,
 `item`, which will be a reference to the collection item whose selected status
 has changed.
+
+
+### Labels
+
+Labels can be pulled from collection item properties or created with a custom
+expression:
+
+```html
+<div ivh-multi-select
+     ivh-multi-select-items="myCollection"
+     ivh-multi-select-label-attribute="'name'">
+  Use "name" attribute for item labels
+</div>
+
+<!--
+  Note: Use `item` to reference the current item in your label expression.
+-->
+<div ivh-multi-select
+     ivh-multi-select-items="myCollection"
+     ivh-multi-select-label-expression="'{{item.firstName}} {{item.lastName}}'">
+  Use an angular expression for item labels
+</div>
+```
 
 
 ### Pagination

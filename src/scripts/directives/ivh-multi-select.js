@@ -13,6 +13,7 @@ angular.module('ivh.multiSelect')
       scope: {
         items: '=ivhMultiSelectItems',
         labelAttr: '=ivhMultiSelectLabelAttribute',
+        labelExpr: '=ivhMultiSelectLabelExpression',
 
         /**
          * Options for selection model
@@ -33,8 +34,8 @@ angular.module('ivh.multiSelect')
       templateUrl: 'src/views/ivh-multi-select.html',
       transclude: true,
       controllerAs: 'ms',
-      controller: ['$document', '$scope', '$injector', 'filterFilter', 'selectionModelOptions',
-          function($document, $scope, $injector, filterFilter, selectionModelOptions) {
+      controller: ['$document', '$scope', '$injector', '$interpolate', 'filterFilter', 'selectionModelOptions',
+          function($document, $scope, $injector, $interpolate, filterFilter, selectionModelOptions) {
         var ms = this;
 
         /**
@@ -96,9 +97,14 @@ angular.module('ivh.multiSelect')
         };
 
         /**
-         * The collection item attribute to display as a label
+         * The collection item attribute or expression to display as a label
          */
-        ms.labelAttr = $scope.labelAttr || 'label';
+        var labelAttr = $scope.labelAttr || 'label'
+          , labelFn = $scope.labelExpr ? $interpolate($scope.labelExpr) : null;
+
+        ms.getLabelFor = function(item) {
+          return labelFn ? labelFn({item: item}) : item[labelAttr];
+        };
 
         /**
          * Whether or not the dropdown is displayed
