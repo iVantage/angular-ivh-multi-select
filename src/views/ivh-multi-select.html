@@ -55,7 +55,7 @@
              tag otherwise `a` fires a click too and undoes the first click. We
              want to honor the actual checkbox click. -->
         <input type="checkbox" ng-click="$event.stopPropagation()" />
-        {{:: item[ms.labelAttr]}}
+        {{:: ms.getLabelFor(item)}}
       </a>
     </li>
 

@@ -5,7 +5,7 @@
 
 > An elegant and efficient multi select for AngularJS apps.
 
-IVH Mutli Select aims to provide a robust mutliselect component while keeping a
+IVH Multi Select aims to provide a robust multiselect component while keeping a
 careful eye on performance and minizing watch counts. While collapsed IVH Multi
 Select will create just ~10 watchers, and only ~40 while expanded.
 
@@ -39,7 +39,7 @@ At a minimum you must provide a collection of items to select from:
 ```
 
 IVH Multi Select will display a button that when clicked shows a menu of items
-to select complete with checkboxes and pagination if availabe. 
+to select complete with checkboxes and pagination if availabe.
 
 We're using the [selection-model][sm] component to manage selections internally.
 You can configure this directive's behavior by working with the
@@ -60,6 +60,29 @@ this expression is evaluated IVH Multi Select will provide a scope variable,
 has changed.
 
 
+### Labels
+
+Labels can be pulled from collection item properties or created with a custom
+expression:
+
+```html
+<div ivh-multi-select
+     ivh-multi-select-items="myCollection"
+     ivh-multi-select-label-attribute="'name'">
+  Use "name" attribute for item labels
+</div>
+
+<!--
+  Note: Use `item` to reference the current item in your label expression.
+-->
+<div ivh-multi-select
+     ivh-multi-select-items="myCollection"
+     ivh-multi-select-label-expression="'{{item.firstName}} {{item.lastName}}'">
+  Use an angular expression for item labels
+</div>
+```
+
+
 ### Pagination
 
 In keeping with our focus on performance, IVH Multi Select will paginate your
@@ -75,7 +98,7 @@ be displayed in full.
 We're using selection-model internally to manage selections. As a convenience we
 provide a filter, `ivhMultiSelectCollect`, to help convert these to arrays of
 IDs if that is more in keeping with your use case. Note that this behavior is
-only supported when using the `mutli-additive` selection mode (the default).
+only supported when using the `multi-additive` selection mode (the default).
 
 ```
 <!--
@@ -112,9 +135,10 @@ needed when you make changes to source files.
 
 ## Changelog
 
-2015-10-20 v0.2.0 Forward selection-model-on-change
-2015-10-08 v0.2.0 Forward options to selection model
-2015-10-07 v0.1.0 Initial release
+- 2015-10-26 v0.5.0 Add custom label expressions
+- 2015-10-20 v0.2.0 Forward selection-model-on-change
+- 2015-10-08 v0.2.0 Forward options to selection model
+- 2015-10-07 v0.1.0 Initial release
 
 
 ## License
