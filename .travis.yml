@@ -1,7 +1,12 @@
 sudo: false
 language: node_js
 node_js:
-  - 'iojs'
-  - '0.12'
-  - '0.10'
+  - "4.1"
 
+before_script:
+  - npm install -g bower
+  - npm install -g grunt-cli
+  - bower install
+
+script:
+  - grunt
