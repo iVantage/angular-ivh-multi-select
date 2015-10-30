@@ -12,6 +12,175 @@ angular.module('ivh.multiSelect', [
 
 
 /**
+ * The Multi Select directive
+ *
+ * @package ivh.multiSelect
+ * @copyright 2015 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.multiSelect')
+  .directive('ivhMultiSelectAsync', function() {
+    'use strict';
+    return {
+      scope: {
+        items: '=ivhMultiSelectItems',
+        labelAttr: '=ivhMultiSelectLabelAttribute',
+        labelExpr: '=ivhMultiSelectLabelExpression',
+
+        /**
+         * Options for selection model
+         */
+        selectionModelType: '=',
+        selectionModelMode: '=',
+        selectionModelSelectedAttribute: '=',
+        selectionModelSelectedClass: '=',
+        selectionModelCleanupStrategy: '=',
+
+        /**
+         * Should be an angular expression in which `item` is the collection
+         * item that has changed selected state
+         */
+        selOnChange: '&selectionModelOnChange'
+      },
+      restrict: 'AE',
+      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}"\nivh-multi-select-collapsable>\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation" ivh-multi-select-tools></li>\n<li role="presentation" ivh-multi-select-filter></li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.sel.onChange(item)">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length"\nivh-multi-select-no-results>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
+      transclude: true,
+      controllerAs: 'ms',
+      controller: ['$document', '$scope', '$injector', '$interpolate', 'filterFilter', 'ivhMultiSelectSelm',
+          function($document, $scope, $injector, $interpolate, filterFilter, ivhMultiSelectSelm) {
+        var ms = this;
+
+        /**
+         * @todo Forward options to ivh-pager
+         */
+        var pagerPageSize = 10
+          , pagerUsePager = true;
+
+        /**
+         * We're embedding selection-model
+         *
+         * Forward supported `selection-model-*` attributes to the underlying
+         * directive.
+         */
+        ms.sel = ivhMultiSelectSelm.options($scope);
+
+        /**
+         * Disable the 'All'/'None' buttons when in single select mode
+         */
+        ms.enableMultiSelect = 'single' !== ms.sel.mode;
+
+        // Fold inline props over everything if provided
+        angular.forEach([
+          // [ **selection model prop**, **value** ]
+          ['type', 'selectionModelType'],
+          ['mode', 'selectionModelMode'],
+          ['selectedAttribute', 'selectionModelSelectedAttribute'],
+          ['selectedClass', 'selectionModelSelectedClass'],
+          ['cleanupStategy', 'selectionModelCleanupStrategy']
+        ], function(p) {
+          var unwatch = $scope.$watch(p[1], function(newVal) {
+            if(newVal) {
+              ms.sel[p[0]] = newVal;
+              if('mode' === p[0]) {
+                ms.enableMultiSelect = 'single' !== newVal;
+              }
+            }
+          });
+
+          $scope.$on('$destroy', unwatch);
+        });
+
+        /**
+         * Provide a way for the outside world to know about selection changes
+         */
+        ms.sel.onChange = function(item) {
+          $scope.selOnChange({item: item});
+        };
+
+        /**
+         * The collection item attribute or expression to display as a label
+         */
+        var labelAttr = $scope.labelAttr || 'label'
+          , labelFn = $scope.labelExpr ? $interpolate($scope.labelExpr) : null;
+
+        ms.getLabelFor = function(item) {
+          return labelFn ? labelFn({item: item}) : item[labelAttr];
+        };
+
+        /**
+         * Whether or not the dropdown is displayed
+         *
+         * Toggled whenever the user clicks the ol' button
+         */
+        ms.isOpen = false;
+
+        /**
+         * Attach the passed items to our controller for consistent interface
+         *
+         * Will be updated from the view as `$scope.items` changes
+         */
+        ms.items = $scope.items;
+
+        /**
+         * The filter string entered by the user into our input control
+         */
+        ms.filterString = '';
+
+        /**
+         * We optionally suppor the ivh.pager module
+         *
+         * If it is present your items will be paged otherwise all are displayed
+         */
+        ms.hasPager = pagerUsePager && $injector.has('ivhPaginateFilter');
+        ms.ixPage = 0;
+        ms.sizePage = pagerPageSize;
+
+        /**
+         * Select all (or deselect) *not filtered out* items
+         *
+         * Note that if paging is enabled items on other pages will still be
+         * selected as normal.
+         */
+        ms.selectAllVisible = function(isSelected) {
+          isSelected = angular.isDefined(isSelected) ?  isSelected : true;
+          var selectedAttr = ms.sel.selectedAttribute;
+          angular.forEach(ms.items, function(item) {
+            item[selectedAttr] = isSelected;
+            ms.sel.onChange(item);
+          });
+        };
+
+        /**
+         * Clicks on the body should close this multiselect
+         *
+         * ... unless the element has been tagged with
+         * ivh-multi-select-stay-open... ;)
+         *
+         * Be a good doobee and clean up this click handler when our scope is
+         * destroyed
+         */
+        var $bod = $document.find('body');
+
+        var collapseMe = function($event) {
+          var evt = $event.originalEvent || $event;
+          if(!evt.ivhMultiSelectIgnore) {
+            ms.isOpen = false;
+            $scope.$digest();
+          }
+        };
+
+        $bod.on('click', collapseMe);
+
+        $scope.$on('$destroy', function() {
+          $bod.off('click', collapseMe);
+        });
+      }]
+    };
+  });
+
+
+
+/**
  * Autofocus the attached element when rendered
  *
  * @package ivh.multiSelect
@@ -30,6 +199,56 @@ angular.module('ivh.multiSelect')
       }
     };
   }]);
+
+
+
+
+/**
+ * Listen for clicks outside the multi-select and collapse it if needed
+ *
+ * @package ivh.multiSelect
+ * @copyright 2015 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.multiSelect')
+  .directive('ivhMultiSelectCollapsable', ['$document', function($document) {
+    'use strict';
+    return {
+      restrict: 'A',
+      require: ['?^ivhMultiSelect', '?^ivhMultiSelectAsync'],
+      link: function(scope, element, attrs, ctrls) {
+
+        /**
+         * Clicks on the body should close this multiselect
+         *
+         * ... unless the element has been tagged with
+         * ivh-multi-select-stay-open... ;)
+         *
+         * Be a good doobee and clean up this click handler when our scope is
+         * destroyed
+         */
+        var $bod = $document.find('body');
+
+        var collapseMe = function($event) {
+          var evt = $event.originalEvent || $event;
+          if(!evt.ivhMultiSelectIgnore) {
+            // Only one of the required parent controllers will be defined
+            angular.forEach(ctrls, function(ms) {
+              if(ms) { ms.isOpen = false; }
+            });
+            scope.$digest();
+          }
+        };
+
+        $bod.on('click', collapseMe);
+
+        scope.$on('$destroy', function() {
+          $bod.off('click', collapseMe);
+        });
+      }
+    };
+  }]);
+
 
 
 
@@ -140,11 +359,11 @@ angular.module('ivh.multiSelect')
         /**
          * Options for selection model
          */
-        selType: '=selectionModelType',
-        selMode: '=selectionModelMode',
-        selAttr: '=selectionModelSelectedAttribute',
-        selClass: '=selectionModelSelectedClass',
-        selCleanup: '=selectionModelCleanupStrategy',
+        selectionModelType: '=',
+        selectionModelMode: '=',
+        selectionModelSelectedAttribute: '=',
+        selectionModelSelectedClass: '=',
+        selectionModelCleanupStrategy: '=',
 
         /**
          * Should be an angular expression in which `item` is the collection
@@ -153,87 +372,17 @@ angular.module('ivh.multiSelect')
         selOnChange: '&selectionModelOnChange'
       },
       restrict: 'AE',
-      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}">\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation" ivh-multi-select-tools></li>\n<li role="presentation" ivh-multi-select-filter></li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.sel.onChange(item)">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length"\nivh-multi-select-no-results>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
+      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}"\nivh-multi-select-collapsable>\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation" ivh-multi-select-tools></li>\n<li role="presentation" ivh-multi-select-filter></li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.sel.onChange(item)">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length"\nivh-multi-select-no-results>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
       transclude: true,
       controllerAs: 'ms',
-      controller: ['$document', '$scope', '$injector', '$interpolate', 'filterFilter', 'selectionModelOptions',
-          function($document, $scope, $injector, $interpolate, filterFilter, selectionModelOptions) {
+      controller: ['$document', '$scope', 'ivhMultiSelectCore',
+          function($document, $scope, ivhMultiSelectCore) {
+
+        /**
+         * Mixin core functionality
+         */
         var ms = this;
-
-        /**
-         * @todo Forward options to ivh-pager
-         */
-        var pagerPageSize = 10
-          , pagerUsePager = true;
-
-        /**
-         * We're embedding selection-model
-         *
-         * Forward supported `selection-model-*` attributes to the underlying
-         * directive.
-         */
-        ms.sel = angular.extend({},
-          // Global defaults
-          selectionModelOptions.get(),
-          // Our defaults
-          {
-            type: 'checkbox',
-            mode: 'multi-additive'
-          });
-
-        /**
-         * Disable the 'All'/'None' buttons when in single select mode
-         */
-        ms.enableMultiSelect = 'single' !== ms.sel.mode;
-
-        // Fold inline props over everything if provided
-        angular.forEach([
-          // [ **selection model prop**, **value** ]
-          ['type', 'selType'],
-          ['mode', 'selMode'],
-          ['selectedAttribute', 'selAttr'],
-          ['selectedClass', 'selClass'],
-          ['cleanupStategy', 'selCleanup']
-        ], function(p) {
-          if($scope[1]) {
-            ms.sel[p[0]] = $scope[1];
-          }
-
-          var unwatch = $scope.$watch(p[1], function(newVal) {
-            if(newVal) {
-              ms.sel[p[0]] = newVal;
-              if('mode' === p[0]) {
-                ms.enableMultiSelect = 'single' !== newVal;
-              }
-            }
-          });
-
-          $scope.$on('$destroy', unwatch);
-        });
-
-        /**
-         * Provide a way for the outside world to know about selection changes
-         */
-        ms.sel.onChange = function(item) {
-          $scope.selOnChange({item: item});
-        };
-
-        /**
-         * The collection item attribute or expression to display as a label
-         */
-        var labelAttr = $scope.labelAttr || 'label'
-          , labelFn = $scope.labelExpr ? $interpolate($scope.labelExpr) : null;
-
-        ms.getLabelFor = function(item) {
-          return labelFn ? labelFn({item: item}) : item[labelAttr];
-        };
-
-        /**
-         * Whether or not the dropdown is displayed
-         *
-         * Toggled whenever the user clicks the ol' button
-         */
-        ms.isOpen = false;
+        ivhMultiSelectCore.init(ms, $scope);
 
         /**
          * Attach the passed items to our controller for consistent interface
@@ -241,20 +390,6 @@ angular.module('ivh.multiSelect')
          * Will be updated from the view as `$scope.items` changes
          */
         ms.items = $scope.items;
-
-        /**
-         * The filter string entered by the user into our input control
-         */
-        ms.filterString = '';
-
-        /**
-         * We optionally suppor the ivh.pager module
-         *
-         * If it is present your items will be paged otherwise all are displayed
-         */
-        ms.hasPager = pagerUsePager && $injector.has('ivhPaginateFilter');
-        ms.ixPage = 0;
-        ms.sizePage = pagerPageSize;
 
         /**
          * Select all (or deselect) *not filtered out* items
@@ -270,31 +405,6 @@ angular.module('ivh.multiSelect')
             ms.sel.onChange(item);
           });
         };
-
-        /**
-         * Clicks on the body should close this multiselect
-         *
-         * ... unless the element has been tagged with
-         * ivh-multi-select-stay-open... ;)
-         *
-         * Be a good doobee and clean up this click handler when our scope is
-         * destroyed
-         */
-        var $bod = $document.find('body');
-
-        var collapseMe = function($event) {
-          var evt = $event.originalEvent || $event;
-          if(!evt.ivhMultiSelectIgnore) {
-            ms.isOpen = false;
-            $scope.$digest();
-          }
-        };
-
-        $bod.on('click', collapseMe);
-
-        $scope.$on('$destroy', function() {
-          $bod.off('click', collapseMe);
-        });
       }]
     };
   });
@@ -366,4 +476,161 @@ angular.module('ivh.multiSelect')
     }
 
     return filterFn;
+  }]);
+
+
+/**
+ * Shared multi select controller functionality
+ *
+ * @package ivh.multiSelect
+ * @copyright 2015 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.multiSelect')
+  .factory('ivhMultiSelectCore', ['$injector', '$interpolate', 'ivhMultiSelectSelm',
+      function($injector, $interpolate, ivhMultiSelectSelm) {
+    'use strict';
+    var exports = {};
+
+    /**
+     * Adds shared functionality a multiselect controller
+     */
+    exports.init = function(ms, $scope) {
+      var pagerPageSize = 10
+        , pagerUsePager = true;
+
+      /**
+       * Whether or not the dropdown is displayed
+       *
+       * See ivh-multi-select-collapsable
+       *
+       * Toggled whenever the user clicks the ol' button
+       */
+      ms.isOpen = false;
+
+      /**
+       * The filter string entered by the user into our input control
+       */
+      ms.filterString = '';
+
+      /**
+       * We're embedding selection-model
+       *
+       * Forward supported `selection-model-*` attributes to the underlying
+       * directive.
+       */
+      ms.sel = ivhMultiSelectSelm.options($scope);
+
+      /**
+       * Disable the 'All'/'None' buttons when in single select mode
+       */
+      ms.enableMultiSelect = 'single' !== ms.sel.mode;
+
+      /**
+       * Setup watchers for each selection model propety attached to us
+       */
+      angular.forEach(ivhMultiSelectSelm.propsMap(), function(p) {
+        var unwatch = $scope.$watch(p[1], function(newVal) {
+          if(newVal) {
+            ms.sel[p[0]] = newVal;
+            if('mode' === p[0]) {
+              ms.enableMultiSelect = 'single' !== newVal;
+            }
+          }
+        });
+        $scope.$on('$destroy', unwatch);
+      });
+
+      /**
+       * Provide a way for the outside world to know about selection changes
+       */
+      ms.sel.onChange = function(item) {
+        $scope.selOnChange({item: item});
+      };
+
+      /**
+       * The collection item attribute or expression to display as a label
+       */
+      var labelAttr = $scope.labelAttr || 'label'
+        , labelFn = $scope.labelExpr ? $interpolate($scope.labelExpr) : null;
+
+      ms.getLabelFor = function(item) {
+        return labelFn ? labelFn({item: item}) : item[labelAttr];
+      };
+
+      /**
+       * We optionally suppor the ivh.pager module
+       *
+       * If it is present your items will be paged otherwise all are displayed
+       */
+      ms.hasPager = pagerUsePager && $injector.has('ivhPaginateFilter');
+      ms.ixPage = 0;
+      ms.sizePage = pagerPageSize;
+    };
+
+    return exports;
+  }]);
+
+
+
+/**
+ * Selection Model helpers for Multi Select
+ *
+ * @package ivh.multiSelect
+ * @copyright 2015 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.multiSelect')
+  .factory('ivhMultiSelectSelm', ['selectionModelOptions', function(selectionModelOptions) {
+    'use strict';
+    var exports = {};
+
+    /**
+     * We're overriding selection model defaults with our own
+     *
+     * May still be set by the user at the attribute level
+     */
+    var selmOverrides = {
+      type: 'checkbox',
+      mode: 'multi-additive'
+    };
+
+    /**
+     * Returns the supported selection model properties
+     *
+     * Note that we're only interested in properties that may need to be watched
+     * (i.e. `selection-model-on-change` is omitted)
+     *
+     * @return {Array} The list of props, look for {1} $scope and {0} on selection model props
+     */
+    exports.propsMap = function() {
+      return [
+        ['type', 'selectionModelType'],
+        ['mode', 'selectionModelMode'],
+        ['selectedAttribute', 'selectionModelSelectedAttribute'],
+        ['selectedClass', 'selectionModelSelectedClass'],
+        ['cleanupStategy', 'selectionModelCleanupStrategy']
+      ];
+    };
+
+    /**
+     * Merges and returns selection model defaults with overrides on the passed
+     * scope.
+     *
+     * Accounts for IVH Multi Select selection model defaults
+     *
+     * @param {Scope} $scope Should have props matching supported selection model attrs
+     * @return {Opbject} A hash of the merged options
+     */
+    exports.options = function($scope) {
+      var opts = angular.extend({}, selectionModelOptions.get(), selmOverrides);
+      angular.forEach(exports.propsMap(), function(p) {
+        if($scope[p[1]]) {
+          opts[p[0]] = $scope[p[1]];
+        }
+      });
+      return opts;
+    };
+
+    return exports;
   }]);
