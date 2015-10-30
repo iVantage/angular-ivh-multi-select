@@ -11,9 +11,13 @@ angular.module('ivh.multiSelect')
     'use strict';
     return {
       scope: {
-        items: '=ivhMultiSelectItems',
         labelAttr: '=ivhMultiSelectLabelAttribute',
         labelExpr: '=ivhMultiSelectLabelExpression',
+
+        /**
+         * The universe of items
+         */
+        items: '=ivhMultiSelectItems',
 
         /**
          * Options for selection model

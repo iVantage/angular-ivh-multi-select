@@ -1,0 +1,48 @@
+
+<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}"
+    ivh-multi-select-collapsable>
+  <button class="btn btn-default dropdown-toggle" type="button"
+      ivh-multi-select-stay-open
+      ng-click="ms.isOpen = !ms.isOpen">
+    <span ng-transclude></span>
+    <span class="caret"></span>
+  </button>
+
+  <ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"
+      ivh-multi-select-stay-open>
+    <li role="presentation" ivh-multi-select-tools></li>
+    <li role="presentation" ivh-multi-select-filter></li>
+    <li role="presentation" class="divider"></li>
+    <li role="presentation" class="ms-item"
+        ng-repeat="item in ms.items"
+        selection-model
+        selection-model-mode="ms.sel.mode"
+        selection-model-type="ms.sel.type"
+        selection-model-selected-attribute="ms.sel.selectedAttribute"
+        selection-model-selected-attribute="ms.sel.selectedAttribute"
+        selection-model-on-change="ms.sel.onChange(item)">
+      <a role="menuitem">
+        <!-- Must stop propagation on checkbox clicks when nested within the `a`
+             tag otherwise `a` fires a click too and undoes the first click. We
+             want to honor the actual checkbox click. -->
+        <input type="checkbox" ng-click="$event.stopPropagation()" />
+        {{:: ms.getLabelFor(item)}}
+      </a>
+    </li>
+
+    <li role="presentation" ng-hide="ms.items.length"
+        ivh-multi-select-no-results>
+    </li>
+
+    <li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">
+      <div class="text-center"
+          ivh-pager
+          ivh-pager-total="ms.countItems"
+          ivh-pager-page-number="ms.ixPage"
+          ivh-pager-page-size="ms.sizePage"
+          ivh-pager-button-size="'sm'">
+      </div>
+    </li>
+  </ul>
+</div>
+
