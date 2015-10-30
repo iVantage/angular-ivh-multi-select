@@ -35,6 +35,45 @@ angular.module('ivh.multiSelect')
 
 
 /**
+ * MS Filter
+ *
+ * Consolidated to share between sync and async multiselect
+ *
+ * @package ivh.multiSelect
+ * @copyright 2015 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.multiSelect')
+  .directive('ivhMultiSelectFilter', function() {
+    'use strict';
+    return {
+      restrict: 'A',
+      template: '<a class="ms-tools">\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus />\n</a>\n'
+    };
+  });
+
+
+/**
+ * Displays a "no results" message
+ *
+ * Consolidated to share between sync and async multiselect
+ *
+ * @package ivh.multiSelect
+ * @copyright 2015 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.multiSelect')
+  .directive('ivhMultiSelectNoResults', function() {
+    'use strict';
+    return {
+      restrict: 'A',
+      template: '<a class="ms-tools">\n<em class="text-muted">\nNothing to show\n</em>\n</a>\n'
+    };
+  });
+
+
+
+/**
  * Don't close the multiselect on click
  *
  * @package ivh.multiSelect
@@ -58,6 +97,27 @@ angular.module('ivh.multiSelect')
       }
     };
   });
+
+
+
+/**
+ * MS Tools (e.g. "Select All" button)
+ *
+ * Consolidated to share between sync and async multiselect
+ *
+ * @package ivh.multiSelect
+ * @copyright 2015 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.multiSelect')
+  .directive('ivhMultiSelectTools', function() {
+    'use strict';
+    return {
+      restrict: 'A',
+      template: '<a class="ms-tools">\n<button class="btn btn-default btn-sm"\nng-click="ms.enableMultiSelect && ms.selectAllVisible()"\nng-class="{disabled: !ms.enableMultiSelect}">\n<span class="glyphicon glyphicon-ok"></span>\nAll\n</button>\n<button class="btn btn-default btn-sm"\nng-click="ms.enableMultiSelect && ms.selectAllVisible(false)"\nng-class="{disabled: !ms.enableMultiSelect}">\n<span class="glyphicon glyphicon-remove"></span>\nNone\n</button>\n<button class="btn btn-default btn-sm"\nng-show="ms.filterString.length"\nng-click="ms.filterString = \'\'">\nClear\n</button>\n</a>\n'
+    };
+  });
+
 
 
 
@@ -93,7 +153,7 @@ angular.module('ivh.multiSelect')
         selOnChange: '&selectionModelOnChange'
       },
       restrict: 'AE',
-      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}">\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation">\n<a class="ms-tools">\n<button class="btn btn-default btn-sm"\nng-click="ms.enableMultiSelect && ms.selectAllVisible()"\nng-class="{disabled: !ms.enableMultiSelect}">\n<span class="glyphicon glyphicon-ok"></span>\nAll\n</button>\n<button class="btn btn-default btn-sm"\nng-click="ms.enableMultiSelect && ms.selectAllVisible(false)"\nng-class="{disabled: !ms.enableMultiSelect}">\n<span class="glyphicon glyphicon-remove"></span>\nNone\n</button>\n<button class="btn btn-default btn-sm"\nng-show="ms.filterString.length"\nng-click="ms.filterString = \'\'">\nClear\n</button>\n</a>\n</li>\n<li role="presentation">\n<a class="ms-tools">\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus>\n</a>\n</li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.sel.onChange(item)">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length">\n<a class="ms-tools">\n<em class="text-muted">\nNothing to show\n</em>\n</a>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
+      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}">\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation" ivh-multi-select-tools></li>\n<li role="presentation" ivh-multi-select-filter></li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.sel.onChange(item)">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length"\nivh-multi-select-no-results>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
       transclude: true,
       controllerAs: 'ms',
       controller: ['$document', '$scope', '$injector', '$interpolate', 'filterFilter', 'selectionModelOptions',

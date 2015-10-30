@@ -9,38 +9,8 @@
 
   <ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"
       ivh-multi-select-stay-open>
-    <li role="presentation">
-      <a class="ms-tools">
-        <button class="btn btn-default btn-sm"
-            ng-click="ms.enableMultiSelect && ms.selectAllVisible()"
-            ng-class="{disabled: !ms.enableMultiSelect}">
-          <span class="glyphicon glyphicon-ok"></span>
-          All
-        </button>
-
-        <button class="btn btn-default btn-sm"
-            ng-click="ms.enableMultiSelect && ms.selectAllVisible(false)"
-            ng-class="{disabled: !ms.enableMultiSelect}">
-          <span class="glyphicon glyphicon-remove"></span>
-          None
-        </button>
-
-        <button class="btn btn-default btn-sm"
-            ng-show="ms.filterString.length"
-            ng-click="ms.filterString = ''">
-          Clear
-        </button>
-      </a>
-    </li>
-    <li role="presentation">
-      <a class="ms-tools">
-        <input class="form-control" type="text"
-            placeholder="Search..."
-            ng-model="ms.filterString"
-            ng-model-options="{debounce: 200}"
-            ivh-multi-select-autofocus>
-      </a>
-    </li>
+    <li role="presentation" ivh-multi-select-tools></li>
+    <li role="presentation" ivh-multi-select-filter></li>
     <li role="presentation" class="divider"></li>
     <li role="presentation" class="ms-item"
         ng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"
@@ -59,12 +29,8 @@
       </a>
     </li>
 
-    <li role="presentation" ng-hide="ms.items.length">
-      <a class="ms-tools">
-        <em class="text-muted">
-          Nothing to show
-        </em>
-      </a>
+    <li role="presentation" ng-hide="ms.items.length"
+        ivh-multi-select-no-results>
     </li>
 
     <li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">
