@@ -193,6 +193,7 @@ needed when you make changes to source files.
 
 ## Changelog
 
+- 2015-10-26 v0.6.0 Add support for server side paging
 - 2015-10-26 v0.5.0 Add custom label expressions
 - 2015-10-20 v0.2.0 Forward selection-model-on-change
 - 2015-10-08 v0.2.0 Forward options to selection model
