@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "jquery": "~2.1.4",
-    "angular-mocks": "^1.2"
+    "angular-mocks": "^1.2",
+    "angular-ivh-pager": "~0.3.0"
   }
 }
