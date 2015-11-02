@@ -112,7 +112,6 @@ angular.module('ivh.multiSelect')
 
         var updatePageSelection = function() {
           var selectedAttr = ms.sel.selectedAttribute;
-          if(!selectedItems.length) { return; }
           for(var ix = ms.items.length; ix--;) {
             ms.items[ix][selectedAttr] = itemIsSelected(ms.items[ix]);
           }
@@ -176,9 +175,10 @@ angular.module('ivh.multiSelect')
          * cluster.
          */
         ms.selectAllVisible = function(isSelected) {
-          var selectedAttr = ms.sel.selectedAttribute;
+          var selectedAttr = ms.sel.selectedAttribute
+            , ix;
           if(isSelected === false) {
-            for(var ix = ms.items.length; ix--;) {
+            for(ix = ms.items.length; ix--;) {
               if(ms.items[ix][selectedAttr]) {
                 ms.items[ix][selectedAttr] = false;
                 ms.sel.onChange(ms.items[ix]);
@@ -204,7 +204,7 @@ angular.module('ivh.multiSelect')
               Array.prototype.push.apply(selectedItems,
                   res[0].items.concat(res[1].items));
               for(ix = ms.items.length; ix--;) {
-                ms.items[selectedAttr] = true;
+                ms.items[ix][selectedAttr] = true;
               }
             });
           }
@@ -244,7 +244,12 @@ angular.module('ivh.multiSelect')
         /**
          * Override the hook for filter change
          */
-        ms.onFilterChange = ms.getItems;
+        ms.onFilterChange = function() {
+          ms.ixPage = 0;
+          return ms.getItems().then(function(items) {
+            return items;
+          });
+        };
 
         /**
          * Get the new page!

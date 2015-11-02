@@ -247,6 +247,50 @@ describe('Directive: ivhMultiSelectAsync', function() {
     }));
   }));
 
+  it('should reset the page when the filter changes', inject(function($timeout) {
+    var page0 = {
+      page: 0,
+      pageSize: 10,
+      totalCount: 30,
+      items: [
+        {label: 'One'},
+        {label: 'Two'},
+        {label: 'Three'},
+        {label: 'Four'},
+        {label: 'Five'},
+        {label: 'Six'},
+        {label: 'Seven'},
+        {label: 'Eight'},
+        {label: 'Nine'},
+        {label: 'Ten'}
+      ]
+    };
+
+    var spy = scope.fetcher = jasmine.createSpy('fetcher').and.returnValue(page0);
+
+    var $el = c([
+      '<div ivh-multi-select-async',
+          'ivh-multi-select-fetcher="fetcher">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    $el.find('[ivh-pager] a:contains("2")').click();
+
+    var $msFilter = $el.find('input[type=text]');
+    $msFilter.val('foobar');
+    $msFilter.change();
+
+    // The text input is debounced
+    $timeout.flush();
+
+    var $firstPageLi = $el.find('[ivh-pager] li:contains("1")');
+
+    expect($firstPageLi.hasClass('active')).toBe(true);
+  }));
+
   it('should accept an array of selected items and match by id', function() {
     var page0 = {
       page: 0,
