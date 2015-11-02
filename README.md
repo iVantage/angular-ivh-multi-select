@@ -87,7 +87,7 @@ expression:
 
 In keeping with our focus on performance, IVH Multi Select will paginate your
 lists if you happen to have the [ivh.pager][pager] module included as a
-dependency.
+dependency (v0.3.0 or greater).
 
 This is not a hard dependency, if you do not include IVH Pager your lists will
 be displayed in full.
@@ -118,6 +118,64 @@ only supported when using the `multi-additive` selection mode (the default).
      selection-model-on-change="demo.selectedIds | ivhMultiSelectCollect:item:'id':'selected'">
 </div>
 ```
+
+
+### Server Side Paging
+
+For times when it would be too expensive to keep the entire list of available
+options on the client side we provide a second directive which allows you to
+provide an item getter function.
+
+```html
+<div ivh-multi-select-async
+    ivh-multi-select-fetcher="fetcher"
+    ivh-multi-select-selected-items="mySelection"
+    selection-model-mode="\'multi-additive\'">
+  Blargus
+</div>
+```
+
+Note the **async** in `ivh-multi-select-async`, this is in fact aseparate
+directive from `ivh-multi-select` but supports a nearly identical set of
+attributes with the following exceptions:
+
+- The values assigned to `ivh-multi-select-fetcher` is required and expected to
+  be a function (signiture detailed below).
+- The value assigned to `ivh-multi-select-id-attribute` will be used to compare
+  newly fetched items with those in your selected items array as they are paged
+  in and out. This is optional and defaults to `'id'`.
+- `ivh-multi-select-items` is ignored... getting our items from the server is
+  kinda the point.
+- You may use the `ivh-multi-select-selected-items` attribute to provide an
+  array of selected items. This will be kept up to date with user driven changes
+  as items are selected and deselected. Note that only `'single'` and
+  `'multi-additive'` (the default) selection modes are supported. Order and
+  item reference preservation is not guarenteed.
+
+#### `ivh-multi-select-fetcher`
+
+ The function we'll use to fetch pages of items.
+ 
+ This should accept an options object with the following properties:
+ 
+ - filter: A string, whatever the user has entered in the filte box
+ - page: The zero-based page number we're requesting for paginated results.
+ - pageSize: The number of items we expect per page
+ 
+
+ The function should return an object, or promise which resolves to shuch an
+ object, with the following properties:
+ 
+
+ - items: A page of collection items, if more than one page was returned only
+   the first `pageSize` will be displayed (assuming paging is enabled).
+ - page: [Optional] The zero-based page number corresponding to the returned
+   results. If ommitted and paging is enabled we will assume `page` from the
+   request options.
+ - pageSize: The size of a page of results, if omitted we will assume `pageSize`
+   from the request options.
+ - `totalCount`: The total (unpaged) result set count
+
 
 ## Testing
 

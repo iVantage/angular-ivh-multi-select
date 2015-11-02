@@ -47,6 +47,13 @@ angular.module('ivh.multiSelect')
       ms.enableMultiSelect = 'single' !== ms.sel.mode;
 
       /**
+       * Filter change hook, override as needed.
+       *
+       * Defined in core so as not to generate errors
+       */
+      ms.onFilterChange = angular.noop;
+
+      /**
        * Setup watchers for each selection model propety attached to us
        */
       angular.forEach(ivhMultiSelectSelm.propsMap(), function(p) {

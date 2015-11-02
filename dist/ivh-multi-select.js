@@ -12,7 +12,7 @@ angular.module('ivh.multiSelect', [
 
 
 /**
- * The Multi Select directive
+ * The (Async) Multi Select directive
  *
  * @package ivh.multiSelect
  * @copyright 2015 iVantage Health Analytics, Inc.
@@ -23,9 +23,45 @@ angular.module('ivh.multiSelect')
     'use strict';
     return {
       scope: {
-        items: '=ivhMultiSelectItems',
         labelAttr: '=ivhMultiSelectLabelAttribute',
         labelExpr: '=ivhMultiSelectLabelExpression',
+
+        /**
+         * Used to compare freshly paged in collection items with those in the
+         * selected items array
+         */
+        idAttr: '=ivhMultiSelectIdAttribute',
+
+        /**
+         * A managed list of currently selected items
+         */
+        selectedItems: '=ivhMultiSelectSelectedItems',
+
+        /**
+         * The function we'll use to fetch pages of items
+         *
+         * Should accept an options object with the following properties:
+         *
+         * - filter: A string, whatever the user has entered in the filte box
+         * - page: The zero-based page number we're requesting for paginated
+         *   results.
+         * - pageSize: The number of items we expect per page
+         *
+         * The function should return an object, or promise which resolves to
+         * shuch an object, with the following properties:
+         *
+         * - items: A page of collection items, if more than one page was
+         *   returned only the first `pageSize` will be displayed (assuming
+         *   paging is enabled).
+         * - page: [Optional] The zero-based page number corresponding to the
+         *   returned results. If ommitted and paging is enabled we will assume
+         *   `page` from the request options.
+         * - pageSize: The size of a page of results, if omitted we will assume
+         *   `pageSize` from the request options.
+         * - `totalCount`: The total (unpaged) result set count
+         *
+         */
+        getItems: '=ivhMultiSelectFetcher',
 
         /**
          * Options for selection model
@@ -43,137 +79,192 @@ angular.module('ivh.multiSelect')
         selOnChange: '&selectionModelOnChange'
       },
       restrict: 'AE',
-      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}"\nivh-multi-select-collapsable>\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation" ivh-multi-select-tools></li>\n<li role="presentation" ivh-multi-select-filter></li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.sel.onChange(item)">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length"\nivh-multi-select-no-results>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
+      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}"\nivh-multi-select-collapsable>\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen; ms.getItems()">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation" ivh-multi-select-tools></li>\n<li role="presentation" ivh-multi-select-filter></li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.onSelectionChange(item);ms.sel.onChange(item)">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length"\nivh-multi-select-no-results>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.countItems > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.countItems"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'"\nivh-pager-on-page-change="ms.onPageChange(newPage, oldPage)">\n</div>\n</li>\n</ul>\n</div>\n',
       transclude: true,
       controllerAs: 'ms',
-      controller: ['$document', '$scope', '$injector', '$interpolate', 'filterFilter', 'ivhMultiSelectSelm',
-          function($document, $scope, $injector, $interpolate, filterFilter, ivhMultiSelectSelm) {
+      controller: ['$document', '$scope', '$q', 'ivhMultiSelectCore',
+          function($document, $scope, $q, ivhMultiSelectCore) {
+
+        /**
+         * Mixin core functionality
+         */
         var ms = this;
+        ivhMultiSelectCore.init(ms, $scope);
 
         /**
-         * @todo Forward options to ivh-pager
-         */
-        var pagerPageSize = 10
-          , pagerUsePager = true;
-
-        /**
-         * We're embedding selection-model
+         * Async flavor supports only 'multi-additive' and 'single' selection
+         * model modes.
          *
-         * Forward supported `selection-model-*` attributes to the underlying
-         * directive.
+         * @todo blow up if we've been given another mode.
          */
-        ms.sel = ivhMultiSelectSelm.options($scope);
 
         /**
-         * Disable the 'All'/'None' buttons when in single select mode
+         * The async version of multi-select can't rely on a local collection
+         *
+         * Instead we work with an array of selected items. These will be matche
+         * up with items fetched from th server by their ID attribute.
+         *
+         * As the user selects and deselected items those items will be added
+         * and removed from the array of selected items.
          */
-        ms.enableMultiSelect = 'single' !== ms.sel.mode;
+        var idAttr = $scope.idAttr || 'id'
+          , selectedItems = $scope.selectedItems || [];
 
-        // Fold inline props over everything if provided
-        angular.forEach([
-          // [ **selection model prop**, **value** ]
-          ['type', 'selectionModelType'],
-          ['mode', 'selectionModelMode'],
-          ['selectedAttribute', 'selectionModelSelectedAttribute'],
-          ['selectedClass', 'selectionModelSelectedClass'],
-          ['cleanupStategy', 'selectionModelCleanupStrategy']
-        ], function(p) {
-          var unwatch = $scope.$watch(p[1], function(newVal) {
-            if(newVal) {
-              ms.sel[p[0]] = newVal;
-              if('mode' === p[0]) {
-                ms.enableMultiSelect = 'single' !== newVal;
+        /**
+         * If we are tracking a selection update the new page of things
+         */
+        var itemIsSelected = function(item) {
+          for(var ix = selectedItems.length; ix--;) {
+            if(selectedItems[ix][idAttr] === item[idAttr]) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        var updatePageSelection = function() {
+          var selectedAttr = ms.sel.selectedAttribute;
+          if(!selectedItems.length) { return; }
+          for(var ix = ms.items.length; ix--;) {
+            ms.items[ix][selectedAttr] = itemIsSelected(ms.items[ix]);
+          }
+        };
+
+        /**
+         * Update the selection as reported to the user whenever we have
+         * selection model updates
+         *
+         * Note that only single and multi-additive selection modes are
+         * supported
+         */
+        ms.onSelectionChange = function(item) {
+          var selectedAttr = ms.sel.selectedAttribute
+            , ix;
+          if('single' === ms.sel.mode) {
+            if(item[selectedAttr]) {
+              selectedItems.length = 0;
+              selectedItems.push(item);
+            } else {
+              for(ix = selectedItems.length; ix--;) {
+                if(item[idAttr] === selectedItems[idAttr]) {
+                  selectedItems.splice(ix, 1);
+                }
               }
             }
-          });
-
-          $scope.$on('$destroy', unwatch);
-        });
-
-        /**
-         * Provide a way for the outside world to know about selection changes
-         */
-        ms.sel.onChange = function(item) {
-          $scope.selOnChange({item: item});
+          } else {
+            for(ix = selectedItems.length; ix--;) {
+              if(selectedItems[ix][idAttr] === item[idAttr]) {
+                selectedItems.splice(ix, 1);
+                break;
+              }
+            }
+            if(item[selectedAttr]) {
+              selectedItems.push(item);
+            }
+          }
         };
 
         /**
-         * The collection item attribute or expression to display as a label
+         * Will be updated as we fetch items
          */
-        var labelAttr = $scope.labelAttr || 'label'
-          , labelFn = $scope.labelExpr ? $interpolate($scope.labelExpr) : null;
-
-        ms.getLabelFor = function(item) {
-          return labelFn ? labelFn({item: item}) : item[labelAttr];
-        };
+        ms.items = [];
 
         /**
-         * Whether or not the dropdown is displayed
+         * The size of the *unpaged* collection
          *
-         * Toggled whenever the user clicks the ol' button
+         * The server shoudl tell us how many items are in the collection
+         * whenever we fetch a new paged set
          */
-        ms.isOpen = false;
-
-        /**
-         * Attach the passed items to our controller for consistent interface
-         *
-         * Will be updated from the view as `$scope.items` changes
-         */
-        ms.items = $scope.items;
-
-        /**
-         * The filter string entered by the user into our input control
-         */
-        ms.filterString = '';
-
-        /**
-         * We optionally suppor the ivh.pager module
-         *
-         * If it is present your items will be paged otherwise all are displayed
-         */
-        ms.hasPager = pagerUsePager && $injector.has('ivhPaginateFilter');
-        ms.ixPage = 0;
-        ms.sizePage = pagerPageSize;
+        ms.countItems = 0;
 
         /**
          * Select all (or deselect) *not filtered out* items
          *
          * Note that if paging is enabled items on other pages will still be
          * selected as normal.
+         *
+         * Trying to selected all items with a server side paginated dataset is
+         * pretty gross... we'll do it but split the request up to leverage our
+         * cluster.
          */
         ms.selectAllVisible = function(isSelected) {
-          isSelected = angular.isDefined(isSelected) ?  isSelected : true;
           var selectedAttr = ms.sel.selectedAttribute;
-          angular.forEach(ms.items, function(item) {
-            item[selectedAttr] = isSelected;
-            ms.sel.onChange(item);
+          if(isSelected === false) {
+            for(var ix = ms.items.length; ix--;) {
+              if(ms.items[ix][selectedAttr]) {
+                ms.items[ix][selectedAttr] = false;
+                ms.sel.onChange(ms.items[ix]);
+              }
+            }
+            selectedItems.length = 0;
+          } else {
+            var sizePageHalfTotal = Math.ceil(ms.countItems / 2);
+            $q.all([
+              $scope.getItems({
+                filter: ms.filterString,
+                page: 0,
+                pageSize: sizePageHalfTotal
+              }),
+              $scope.getItems({
+                filter: ms.filterString,
+                page: 1,
+                pageSize: sizePageHalfTotal
+              })
+            ])
+            .then(function(res) {
+              selectedItems.length = 0;
+              Array.prototype.push.apply(selectedItems,
+                  res[0].items.concat(res[1].items));
+              for(ix = ms.items.length; ix--;) {
+                ms.items[selectedAttr] = true;
+              }
+            });
+          }
+        };
+
+        /**
+         * Fetch a page of data
+         *
+         * Does nothing if the item list is closed
+         *
+         * @returns {Promise} Resolves to the current page of items
+         */
+        ms.getItems = function() {
+          if(!ms.isOpen) { return $q.when(ms.item); }
+          return $q.when($scope.getItems({
+            filter: ms.filterString,
+            page: ms.ixPage,
+            pageSize: ms.sizePage
+          }))
+          .then(function(response) {
+            ms.items = response.items;
+            ms.ixPage = response.page || ms.ixPage;
+            ms.sizePage = response.pageSize || ms.sizePage;
+            ms.countItems = response.totalCount || ms.items.length;
+            if(ms.items.length > ms.sizePage) {
+              ms.items.length = ms.sizePage;
+            }
+            updatePageSelection();
+            return ms.items;
+          }, function(reason) {
+            ms.items = [];
+            ms.countItems = 0;
+            return ms.items;
           });
         };
 
         /**
-         * Clicks on the body should close this multiselect
-         *
-         * ... unless the element has been tagged with
-         * ivh-multi-select-stay-open... ;)
-         *
-         * Be a good doobee and clean up this click handler when our scope is
-         * destroyed
+         * Override the hook for filter change
          */
-        var $bod = $document.find('body');
+        ms.onFilterChange = ms.getItems;
 
-        var collapseMe = function($event) {
-          var evt = $event.originalEvent || $event;
-          if(!evt.ivhMultiSelectIgnore) {
-            ms.isOpen = false;
-            $scope.$digest();
-          }
+        /**
+         * Get the new page!
+         */
+        ms.onPageChange = function(newPage, oldPage) {
+          ms.ixPage = newPage;
+          ms.getItems();
         };
-
-        $bod.on('click', collapseMe);
-
-        $scope.$on('$destroy', function() {
-          $bod.off('click', collapseMe);
-        });
       }]
     };
   });
@@ -267,7 +358,7 @@ angular.module('ivh.multiSelect')
     'use strict';
     return {
       restrict: 'A',
-      template: '<a class="ms-tools">\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus />\n</a>\n'
+      template: '<a class="ms-tools">\n<!-- ms.getItems only defined in async version -->\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-change="ms.onFilterChange()"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus />\n</a>\n'
     };
   });
 
@@ -352,9 +443,13 @@ angular.module('ivh.multiSelect')
     'use strict';
     return {
       scope: {
-        items: '=ivhMultiSelectItems',
         labelAttr: '=ivhMultiSelectLabelAttribute',
         labelExpr: '=ivhMultiSelectLabelExpression',
+
+        /**
+         * The universe of items
+         */
+        items: '=ivhMultiSelectItems',
 
         /**
          * Options for selection model
@@ -525,6 +620,13 @@ angular.module('ivh.multiSelect')
        * Disable the 'All'/'None' buttons when in single select mode
        */
       ms.enableMultiSelect = 'single' !== ms.sel.mode;
+
+      /**
+       * Filter change hook, override as needed.
+       *
+       * Defined in core so as not to generate errors
+       */
+      ms.onFilterChange = angular.noop;
 
       /**
        * Setup watchers for each selection model propety attached to us

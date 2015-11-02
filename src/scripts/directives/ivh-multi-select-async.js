@@ -14,7 +14,15 @@ angular.module('ivh.multiSelect')
         labelAttr: '=ivhMultiSelectLabelAttribute',
         labelExpr: '=ivhMultiSelectLabelExpression',
 
+        /**
+         * Used to compare freshly paged in collection items with those in the
+         * selected items array
+         */
         idAttr: '=ivhMultiSelectIdAttribute',
+
+        /**
+         * A managed list of currently selected items
+         */
         selectedItems: '=ivhMultiSelectSelectedItems',
 
         /**
@@ -38,10 +46,10 @@ angular.module('ivh.multiSelect')
          *   `page` from the request options.
          * - pageSize: The size of a page of results, if omitted we will assume
          *   `pageSize` from the request options.
+         * - `totalCount`: The total (unpaged) result set count
          *
-         * @todo but what to call it?
          */
-        foo: '=',
+        getItems: '=ivhMultiSelectFetcher',
 
         /**
          * Options for selection model
@@ -59,11 +67,11 @@ angular.module('ivh.multiSelect')
         selOnChange: '&selectionModelOnChange'
       },
       restrict: 'AE',
-      templateUrl: 'src/views/ivh-multi-select.html',
+      templateUrl: 'src/views/ivh-multi-select-async.html',
       transclude: true,
       controllerAs: 'ms',
-      controller: ['$document', '$scope', 'ivhMultiSelectCore',
-          function($document, $scope, ivhMultiSelectCore) {
+      controller: ['$document', '$scope', '$q', 'ivhMultiSelectCore',
+          function($document, $scope, $q, ivhMultiSelectCore) {
 
         /**
          * Mixin core functionality
@@ -91,6 +99,60 @@ angular.module('ivh.multiSelect')
           , selectedItems = $scope.selectedItems || [];
 
         /**
+         * If we are tracking a selection update the new page of things
+         */
+        var itemIsSelected = function(item) {
+          for(var ix = selectedItems.length; ix--;) {
+            if(selectedItems[ix][idAttr] === item[idAttr]) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        var updatePageSelection = function() {
+          var selectedAttr = ms.sel.selectedAttribute;
+          if(!selectedItems.length) { return; }
+          for(var ix = ms.items.length; ix--;) {
+            ms.items[ix][selectedAttr] = itemIsSelected(ms.items[ix]);
+          }
+        };
+
+        /**
+         * Update the selection as reported to the user whenever we have
+         * selection model updates
+         *
+         * Note that only single and multi-additive selection modes are
+         * supported
+         */
+        ms.onSelectionChange = function(item) {
+          var selectedAttr = ms.sel.selectedAttribute
+            , ix;
+          if('single' === ms.sel.mode) {
+            if(item[selectedAttr]) {
+              selectedItems.length = 0;
+              selectedItems.push(item);
+            } else {
+              for(ix = selectedItems.length; ix--;) {
+                if(item[idAttr] === selectedItems[idAttr]) {
+                  selectedItems.splice(ix, 1);
+                }
+              }
+            }
+          } else {
+            for(ix = selectedItems.length; ix--;) {
+              if(selectedItems[ix][idAttr] === item[idAttr]) {
+                selectedItems.splice(ix, 1);
+                break;
+              }
+            }
+            if(item[selectedAttr]) {
+              selectedItems.push(item);
+            }
+          }
+        };
+
+        /**
          * Will be updated as we fetch items
          */
         ms.items = [];
@@ -108,17 +170,88 @@ angular.module('ivh.multiSelect')
          *
          * Note that if paging is enabled items on other pages will still be
          * selected as normal.
+         *
+         * Trying to selected all items with a server side paginated dataset is
+         * pretty gross... we'll do it but split the request up to leverage our
+         * cluster.
          */
         ms.selectAllVisible = function(isSelected) {
-          // Ooph... fetch everything :/
-          //
-          // Perhaps confirm that this is actually what we want to do if there
-          // are more than a certain number of items in the full set
+          var selectedAttr = ms.sel.selectedAttribute;
+          if(isSelected === false) {
+            for(var ix = ms.items.length; ix--;) {
+              if(ms.items[ix][selectedAttr]) {
+                ms.items[ix][selectedAttr] = false;
+                ms.sel.onChange(ms.items[ix]);
+              }
+            }
+            selectedItems.length = 0;
+          } else {
+            var sizePageHalfTotal = Math.ceil(ms.countItems / 2);
+            $q.all([
+              $scope.getItems({
+                filter: ms.filterString,
+                page: 0,
+                pageSize: sizePageHalfTotal
+              }),
+              $scope.getItems({
+                filter: ms.filterString,
+                page: 1,
+                pageSize: sizePageHalfTotal
+              })
+            ])
+            .then(function(res) {
+              selectedItems.length = 0;
+              Array.prototype.push.apply(selectedItems,
+                  res[0].items.concat(res[1].items));
+              for(ix = ms.items.length; ix--;) {
+                ms.items[selectedAttr] = true;
+              }
+            });
+          }
+        };
 
-          //angular.forEach(ms.items, function(item) {
-          //  item[selectedAttr] = isSelected;
-          //  ms.sel.onChange(item);
-          //});
+        /**
+         * Fetch a page of data
+         *
+         * Does nothing if the item list is closed
+         *
+         * @returns {Promise} Resolves to the current page of items
+         */
+        ms.getItems = function() {
+          if(!ms.isOpen) { return $q.when(ms.item); }
+          return $q.when($scope.getItems({
+            filter: ms.filterString,
+            page: ms.ixPage,
+            pageSize: ms.sizePage
+          }))
+          .then(function(response) {
+            ms.items = response.items;
+            ms.ixPage = response.page || ms.ixPage;
+            ms.sizePage = response.pageSize || ms.sizePage;
+            ms.countItems = response.totalCount || ms.items.length;
+            if(ms.items.length > ms.sizePage) {
+              ms.items.length = ms.sizePage;
+            }
+            updatePageSelection();
+            return ms.items;
+          }, function(reason) {
+            ms.items = [];
+            ms.countItems = 0;
+            return ms.items;
+          });
+        };
+
+        /**
+         * Override the hook for filter change
+         */
+        ms.onFilterChange = ms.getItems;
+
+        /**
+         * Get the new page!
+         */
+        ms.onPageChange = function(newPage, oldPage) {
+          ms.ixPage = newPage;
+          ms.getItems();
         };
       }]
     };

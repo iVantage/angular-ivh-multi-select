@@ -3,7 +3,7 @@
     ivh-multi-select-collapsable>
   <button class="btn btn-default dropdown-toggle" type="button"
       ivh-multi-select-stay-open
-      ng-click="ms.isOpen = !ms.isOpen">
+      ng-click="ms.isOpen = !ms.isOpen; ms.getItems()">
     <span ng-transclude></span>
     <span class="caret"></span>
   </button>
@@ -20,7 +20,7 @@
         selection-model-type="ms.sel.type"
         selection-model-selected-attribute="ms.sel.selectedAttribute"
         selection-model-selected-attribute="ms.sel.selectedAttribute"
-        selection-model-on-change="ms.sel.onChange(item)">
+        selection-model-on-change="ms.onSelectionChange(item);ms.sel.onChange(item)">
       <a role="menuitem">
         <!-- Must stop propagation on checkbox clicks when nested within the `a`
              tag otherwise `a` fires a click too and undoes the first click. We
@@ -34,13 +34,14 @@
         ivh-multi-select-no-results>
     </li>
 
-    <li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">
+    <li role="presentation" ng-if="ms.hasPager && ms.countItems > ms.sizePage">
       <div class="text-center"
           ivh-pager
           ivh-pager-total="ms.countItems"
           ivh-pager-page-number="ms.ixPage"
           ivh-pager-page-size="ms.sizePage"
-          ivh-pager-button-size="'sm'">
+          ivh-pager-button-size="'sm'"
+          ivh-pager-on-page-change="ms.onPageChange(newPage, oldPage)">
       </div>
     </li>
   </ul>
