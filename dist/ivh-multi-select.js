@@ -429,7 +429,7 @@ angular.module('ivh.multiSelect')
     'use strict';
     return {
       restrict: 'A',
-      template: '<a class="ms-tools">\n<button class="btn btn-default btn-sm"\nng-click="ms.enableMultiSelect && ms.selectAllVisible()"\nng-class="{disabled: !ms.enableMultiSelect}">\n<span class="glyphicon glyphicon-ok"></span>\nAll\n</button>\n<button class="btn btn-default btn-sm"\nng-click="ms.enableMultiSelect && ms.selectAllVisible(false)"\nng-class="{disabled: !ms.enableMultiSelect}">\n<span class="glyphicon glyphicon-remove"></span>\nNone\n</button>\n<button class="btn btn-default btn-sm"\nng-show="ms.filterString.length"\nng-click="ms.filterString = \'\'">\nClear\n</button>\n</a>\n'
+      template: '<a class="ms-tools">\n<button class="btn btn-default btn-sm"\nng-click="ms.enableMultiSelect && ms.selectAllVisible()"\nng-class="{disabled: !ms.enableMultiSelect}">\n<span class="glyphicon glyphicon-ok"></span>\nAll\n</button>\n<button class="btn btn-default btn-sm"\nng-click="ms.enableMultiSelect && ms.selectAllVisible(false)"\nng-class="{disabled: !ms.enableMultiSelect}">\n<span class="glyphicon glyphicon-remove"></span>\nNone\n</button>\n<button class="btn btn-default btn-sm"\nng-show="ms.filterString.length"\nng-click="ms.filterString = \'\';ms.onFilterChange()">\nClear\n</button>\n</a>\n'
     };
   });
 

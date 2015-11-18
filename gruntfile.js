@@ -89,6 +89,7 @@ module.exports = function(grunt) {
         src: ['dist/ivh-multi-select.js'],
         options: {
           specs: 'test/spec/**/*.js',
+          summary: true,
           vendor: [
             'bower_components/jquery/dist/jquery.js',
             'bower_components/angular/angular.js',

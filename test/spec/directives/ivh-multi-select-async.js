@@ -247,6 +247,50 @@ describe('Directive: ivhMultiSelectAsync', function() {
     }));
   }));
 
+  it('should fetch new items when the filter is cleared', inject(function($q, $timeout) {
+    var page0 = $q.when({
+      page: 0,
+      pageSize: 10,
+      totalCount: 30,
+      items: [
+        {label: 'filtered_One'},
+        {label: 'filtered_Two'},
+        {label: 'filtered_Three'},
+        {label: 'filtered_Four'},
+        {label: 'filtered_Five'},
+        {label: 'filtered_Six'},
+        {label: 'filtered_Seven'},
+        {label: 'filtered_Eight'},
+        {label: 'filtered_Nine'},
+        {label: 'filtered_Ten'}
+      ]
+    });
+
+    var spy = scope.fetcher = jasmine.createSpy('fetcher').and.returnValue(page0);
+
+    var $el = c([
+      '<div ivh-multi-select-async',
+          'ivh-multi-select-fetcher="fetcher">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    var $msFilter = $el.find('input[type=text]');
+    $msFilter.val('foobar');
+    $msFilter.change();
+    $timeout.flush(); // text input is debounced
+
+    $el.find('button:contains("Clear")').click();
+
+    expect(spy.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({
+      filter: '',
+      page: 0,
+      pageSize: jasmine.any(Number)
+    }));
+  }));
+
   it('should reset the page when the filter changes', inject(function($timeout) {
     var page0 = {
       page: 0,
