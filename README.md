@@ -135,7 +135,7 @@ provide an item getter function.
 </div>
 ```
 
-Note the **async** in `ivh-multi-select-async`, this is in fact aseparate
+Note the **async** in `ivh-multi-select-async`, this is in fact a separate
 directive from `ivh-multi-select` but supports a nearly identical set of
 attributes with the following exceptions:
 
