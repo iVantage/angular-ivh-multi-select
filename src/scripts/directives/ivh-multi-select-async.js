@@ -213,18 +213,25 @@ angular.module('ivh.multiSelect')
         /**
          * Fetch a page of data
          *
-         * Does nothing if the item list is closed
+         * Does nothing if the item list is closed. Results will not be
+         * displayed if there has been a subsequent call to `ms.getItems`
          *
          * @returns {Promise} Resolves to the current page of items
          */
         ms.getItems = function() {
           if(!ms.isOpen) { return $q.when(ms.item); }
+          var fetchedOnCount = ++getItemsCallCount;
           return $q.when($scope.getItems({
             filter: ms.filterString,
             page: ms.ixPage,
             pageSize: ms.sizePage
           }))
           .then(function(response) {
+            if(fetchedOnCount !== getItemsCallCount) {
+              // There has been another call to `getItems` since the one these
+              // results correspond to.
+              return;
+            }
             ms.items = response.items;
             ms.ixPage = response.page || ms.ixPage;
             ms.sizePage = response.pageSize || ms.sizePage;
@@ -240,6 +247,10 @@ angular.module('ivh.multiSelect')
             return ms.items;
           });
         };
+
+        // A stamp for `ms.getItems` to verify that the items fetched are still
+        // considered "fresh".
+        var getItemsCallCount = 0;
 
         /**
          * Override the hook for filter change
