@@ -258,9 +258,7 @@ angular.module('ivh.multiSelect')
          */
         ms.onFilterChange = function() {
           ms.ixPage = 0;
-          return ms.getItems().then(function(items) {
-            return items;
-          });
+          ms.getItems();
         };
 
         /**
