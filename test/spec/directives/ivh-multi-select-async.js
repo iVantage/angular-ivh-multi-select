@@ -196,7 +196,6 @@ describe('Directive: ivhMultiSelectAsync', function() {
     $el.find('[ivh-pager] li a:contains("2")').click();
 
     scope.$apply();
-    $timeout.flush();
 
     var msItems = $el.find('li.ms-item');
     expect(msItems.length).toBe(10);
@@ -515,5 +514,66 @@ describe('Directive: ivhMultiSelectAsync', function() {
       expect(mySelection.length).toBe(0);
     });
   });
+
+  it('should always show results from the most recent search', inject(function($q, $timeout) {
+    /**
+     * @see https://github.com/iVantage/angular-ivh-multi-select/issues/7
+     */
+    var deferred1 = $q.defer()
+      , deferred2 = $q.defer();
+
+    var results1 = {
+      page: 0,
+      pageSize: 10,
+      totalCount: 3,
+      items: [
+        {id: 1, label: 'res_One'},
+        {id: 2, label: 'res_Two'},
+        {id: 3, label: 'res_Three'}
+      ]
+    };
+
+    var results2 = {
+      page: 0,
+      pageSize: 10,
+      totalCount: 3,
+      items: [
+        {id: 4, label: 'res_Four'},
+        {id: 5, label: 'res_Five'},
+        {id: 6, label: 'res_Six'}
+      ]
+    };
+
+    scope.fetcher = jasmine.createSpy('fetcher').and.callFake(function(args) {
+      return args.filter === 'results2' ? deferred2.promise : deferred1.promise;
+    });
+
+    var $el = c([
+      '<div ivh-multi-select-async',
+          'ivh-multi-select-fetcher="fetcher">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    var $msFilter = $el.find('input[type=text]');
+    $msFilter.val('results1');
+    $msFilter.change();
+    $timeout.flush();
+
+    $msFilter.val('results2');
+    $msFilter.change();
+    $timeout.flush();
+
+    deferred2.resolve(results2);
+    scope.$apply();
+
+    deferred1.resolve(results1);
+    scope.$apply();
+
+    var msItems = $el.find('li.ms-item');
+    expect(msItems.eq(0).text().trim()).toBe('res_Four');
+  }));
 });
 
