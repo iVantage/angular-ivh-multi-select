@@ -20,6 +20,10 @@ Install with bower:
 bower install --save angular-ivh-multi-select
 ```
 
+*Note: You may optionally include angular-ivh-auto-focus as well to
+automatically focus multi select input controls. See the auto focus section
+below for detail.*
+
 
 ## Usage
 
@@ -176,6 +180,28 @@ attributes with the following exceptions:
    from the request options.
  - `totalCount`: The total (unpaged) result set count
 
+
+### Autofocus Input fields
+
+Include the [IVH Auto Focus](https://github.com/iVantage/angular-ivh-auto-focus)
+module in your application to enable auto-focusing multi select inputs.
+
+Install with bower:
+
+```shell
+bower install --save angular-ivh-auto-focus
+```
+
+Include in your application
+
+```javascript
+angular.module('myApp', [
+  'ivh.multiSelect',
+  'ivh.autoFocus'
+]);
+```
+
+Enjoy auto focusing multi select inputs :smile:.
 
 ## Testing
 

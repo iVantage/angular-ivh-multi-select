@@ -286,29 +286,6 @@ angular.module('ivh.multiSelect')
 
 
 /**
- * Autofocus the attached element when rendered
- *
- * @package ivh.multiSelect
- * @copyright 2015 iVantage Health Analytics, Inc.
- */
-
-angular.module('ivh.multiSelect')
-  .directive('ivhMultiSelectAutofocus', ['$timeout', function($timeout) {
-    'use strict';
-    return {
-      restrict: 'A',
-      link: function(scope, element, attrs) {
-        $timeout(function() {
-          element[0].focus();
-        });
-      }
-    };
-  }]);
-
-
-
-
-/**
  * Listen for clicks outside the multi-select and collapse it if needed
  *
  * @package ivh.multiSelect
@@ -372,7 +349,7 @@ angular.module('ivh.multiSelect')
     'use strict';
     return {
       restrict: 'A',
-      template: '<a class="ms-tools">\n<!-- ms.getItems only defined in async version -->\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-change="ms.onFilterChange()"\nng-model-options="{debounce: 200}"\nivh-multi-select-autofocus />\n</a>\n'
+      template: '<a class="ms-tools">\n<!-- ms.getItems only defined in async version -->\n<input class="form-control" type="text"\nplaceholder="Search..."\nng-model="ms.filterString"\nng-change="ms.onFilterChange()"\nng-model-options="{debounce: 200}"\nivh-auto-focus />\n</a>\n'
     };
   });
 
