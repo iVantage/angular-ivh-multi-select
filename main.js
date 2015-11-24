@@ -18,7 +18,8 @@ var app = ng.module('demo', [
   'selectionModel',
   'ivh.pluckAndJoin',
   'ivh.pager',
-  'ivh.multiSelect'
+  'ivh.multiSelect',
+  'ivh.autoFocus'
 ]);
 
 app.controller('SillyCtrl', function() {
