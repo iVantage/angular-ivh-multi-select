@@ -162,7 +162,7 @@ attributes with the following exceptions:
  
  This should accept an options object with the following properties:
  
- - filter: A string, whatever the user has entered in the filte box
+ - filter: A string, whatever the user has entered in the filter box
  - page: The zero-based page number we're requesting for paginated results.
  - pageSize: The number of items we expect per page
  
