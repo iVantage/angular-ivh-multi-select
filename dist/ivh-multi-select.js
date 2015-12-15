@@ -279,6 +279,20 @@ angular.module('ivh.multiSelect')
           ms.ixPage = newPage;
           ms.getItems();
         };
+
+        /**
+         * Update our local reference if `selectedItems` changes
+         *
+         * @todo Is it cleaner to just use scope.selectedItems everywhere? We
+         * might still need a watch to update the displayed selected when it
+         * does change if that's something we want to support
+         */
+        $scope.$watch('selectedItems', function(newVal, oldVal) {
+          if(newVal && newVal !== oldVal) {
+            selectedItems = newVal;
+            updatePageSelection();
+          }
+        });
       }]
     };
   });

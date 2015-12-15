@@ -513,6 +513,15 @@ describe('Directive: ivhMultiSelectAsync', function() {
       $el.find('button:contains("None")').click();
       expect(mySelection.length).toBe(0);
     });
+
+    it('should respect reference changes on the list of selected items', function() {
+      scope.mySelection = [{id: 4, label: 'Four'}];
+      var $el = c(tpl);
+      $el.find('button').click();
+      scope.mySelection = [{id: 1}, {id: 2}];
+      scope.$apply();
+      expect($el.find(':checked').length).toBe(2);
+    });
   });
 
   it('should always show results from the most recent search', inject(function($q, $timeout) {
