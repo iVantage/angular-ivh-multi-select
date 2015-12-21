@@ -135,4 +135,61 @@ describe('Directive: ivhMultiSelect', function() {
     var t = $el.find('li.ms-item').first().text().trim();
     expect(t).toBe('5: Foo');
   });
+
+  it('should allow variable label expressions', function() {
+    scope.items = [{
+      name: 'Foo',
+      num: 5
+    }, {
+      name: 'Bar',
+      num: 9
+    }];
+
+    // But... it will change later ;)
+    scope.labelExpr = '{{item.name}}';
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items"',
+          'ivh-multi-select-label-expression="labelExpr">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    // Oh nos! It's different!
+    scope.labelExpr = '{{item.num}}: {{item.name}}';
+    scope.$apply();
+
+    $el.find('button').click();
+
+    var t = $el.find('li.ms-item').first().text().trim();
+    expect(t).toBe('5: Foo');
+  });
+
+  it('should allow functions that return a label expression', function() {
+    scope.items = [{
+      name: 'Foo',
+      num: 5
+    }, {
+      name: 'Bar',
+      num: 9
+    }];
+
+    scope.getLabelExpr = function() {
+      return '{{item.num}}: {{item.name}}';
+    };
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items"',
+          'ivh-multi-select-label-expression="getLabelExpr()">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    var t = $el.find('li.ms-item').first().text().trim();
+    expect(t).toBe('5: Foo');
+  });
 });
