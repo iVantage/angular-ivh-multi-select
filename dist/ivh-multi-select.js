@@ -658,12 +658,16 @@ angular.module('ivh.multiSelect')
       /**
        * The collection item attribute or expression to display as a label
        */
-      var labelAttr = $scope.labelAttr || 'label'
-        , labelFn = $scope.labelExpr ? $interpolate($scope.labelExpr) : null;
+      var labelAttr, labelFn;
 
       ms.getLabelFor = function(item) {
         return labelFn ? labelFn({item: item}) : item[labelAttr];
       };
+
+      $scope.$watch('labelExpr || labelAttr', function() {
+        labelAttr = $scope.labelAttr || 'label';
+        labelFn = $scope.labelExpr ? $interpolate($scope.labelExpr) : null;
+      });
 
       /**
        * We optionally suppor the ivh.pager module
