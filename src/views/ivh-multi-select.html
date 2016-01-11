@@ -19,7 +19,8 @@
         selection-model-mode="ms.sel.mode"
         selection-model-type="ms.sel.type"
         selection-model-selected-attribute="ms.sel.selectedAttribute"
-        selection-model-on-change="ms.sel.onChange(item)">
+        selection-model-on-change="ms.sel.onChange(item)"
+        selection-model-selected-items="ms.sel.selectedItems">
       <a role="menuitem">
         <!-- Must stop propagation on checkbox clicks when nested within the `a`
              tag otherwise `a` fires a click too and undoes the first click. We

@@ -27,6 +27,7 @@ angular.module('ivh.multiSelect')
         selectionModelSelectedAttribute: '=',
         selectionModelSelectedClass: '=',
         selectionModelCleanupStrategy: '=',
+        selectionModelSelectedItems: '=',
 
         /**
          * Should be an angular expression in which `item` is the collection

@@ -192,4 +192,22 @@ describe('Directive: ivhMultiSelect', function() {
     var t = $el.find('li.ms-item').first().text().trim();
     expect(t).toBe('5: Foo');
   });
+
+  it('should allow a variable which holds the list of selected items', function() {
+    scope.items = [{label: 'foo'}];
+    scope.selectedItems = [];
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items"',
+          'selection-model-selected-items="selectedItems">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+    $el.find('li.ms-item').first().click();
+
+    expect(scope.selectedItems.length).toBe(1);
+  });
 });

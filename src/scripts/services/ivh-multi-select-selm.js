@@ -35,7 +35,8 @@ angular.module('ivh.multiSelect')
         ['mode', 'selectionModelMode'],
         ['selectedAttribute', 'selectionModelSelectedAttribute'],
         ['selectedClass', 'selectionModelSelectedClass'],
-        ['cleanupStategy', 'selectionModelCleanupStrategy']
+        ['cleanupStategy', 'selectionModelCleanupStrategy'],
+        ['selectedItems', 'selectionModelSelectedItems']
       ];
     };
 
