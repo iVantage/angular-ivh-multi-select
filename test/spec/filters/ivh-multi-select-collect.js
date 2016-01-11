@@ -1,5 +1,5 @@
 
-describe('Directive: ivhMultiSelect', function() {
+describe('Filter: ivhMultiSelectCollect', function() {
   'use strict';
 
   beforeEach(module('ivh.multiSelect'));
