@@ -406,7 +406,7 @@ describe('Directive: ivhMultiSelectAsync', function() {
       var mySelection = scope.mySelection = [{id: 2, label: 'Two'}];
       var $el = c(tpl);
       $el.find('button').click();
-      $el.find('a:contains("One") input[type=checkbox]').click();
+      $el.find('a:contains("Two") input[type=checkbox]').click();
       scope.$apply();
       expect(mySelection.length).toBe(0);
     });
