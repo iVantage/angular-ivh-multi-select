@@ -15,7 +15,7 @@
   ],
   "dependencies": {
     "angular": "^1.2",
-    "selection-model": "angular-selection-model#~0.10.0"
+    "selection-model": "angular-selection-model#^0.10.2"
   },
   "devDependencies": {
     "jquery": "~2.1.4",

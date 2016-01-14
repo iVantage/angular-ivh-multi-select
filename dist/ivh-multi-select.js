@@ -145,7 +145,7 @@ angular.module('ivh.multiSelect')
               selectedItems.push(item);
             } else {
               for(ix = selectedItems.length; ix--;) {
-                if(item[idAttr] === selectedItems[idAttr]) {
+                if(item[idAttr] === selectedItems[ix][idAttr]) {
                   selectedItems.splice(ix, 1);
                 }
               }
