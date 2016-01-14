@@ -401,6 +401,15 @@ describe('Directive: ivhMultiSelectAsync', function() {
       scope.$apply();
       expect(mySelection.length).toBe(1);
     });
+
+    it('should be able to remove the last item on checkbox click', function() {
+      var mySelection = scope.mySelection = [{id: 2, label: 'Two'}];
+      var $el = c(tpl);
+      $el.find('button').click();
+      $el.find('a:contains("One") input[type=checkbox]').click();
+      scope.$apply();
+      expect(mySelection.length).toBe(0);
+    });
   });
 
   describe('with selected items (multi-additive)', function() {
