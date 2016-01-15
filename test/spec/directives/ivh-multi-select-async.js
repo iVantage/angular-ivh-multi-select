@@ -581,6 +581,32 @@ describe('Directive: ivhMultiSelectAsync', function() {
       expect(mySelection.length).toBe(0);
     });
 
+    it('should remove all items including ones not in the set if there is no filter', function() {
+      var mySelection = scope.mySelection = [{id: 'wow', label: 'Wow'}];
+      var $el = c(tpl);
+      $el.find('button').click();
+      $el.find('button:contains("None")').click();
+      expect(mySelection.length).toBe(0);
+    });
+
+    it('should only remove items in the filtered set if there is a filter', inject(function($timeout) {
+      var mySelection = scope.mySelection = [{id: 4, label: 'Four'}, {id: 5, label: 'Five'}];
+      var $el = c(tpl);
+      $el.find('button').click();
+
+      var $msFilter = $el.find('input[type=text]');
+      $msFilter.val('Four');
+      $msFilter.change();
+      $timeout.flush();
+
+      $el.find('button:contains("None")').click();
+      scope.$apply();
+
+      expect(mySelection).toEqual([
+        jasmine.objectContaining({id: 5})
+      ]);
+    }));
+
     it('should respect reference changes on the list of selected items', function() {
       scope.mySelection = [{id: 4, label: 'Four'}];
       var $el = c(tpl);
