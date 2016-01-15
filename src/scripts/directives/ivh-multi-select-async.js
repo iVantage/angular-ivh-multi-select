@@ -200,9 +200,25 @@ angular.module('ivh.multiSelect')
               })
             ])
             .then(function(res) {
-              selectedItems.length = 0;
-              Array.prototype.push.apply(selectedItems,
-                  res[0].items.concat(res[1].items));
+              var incomingItems = res[0].items.concat(res[1].items)
+                , incomingItemIds = {};
+
+              for(ix = incomingItems.length; ix--;) {
+                var id = incomingItems[ix][idAttr];
+                if(incomingItemIds.hasOwnProperty(id)) {
+                  incomingItems.splice(ix, 1);
+                }
+                incomingItemIds[id] = 1;
+              }
+
+              for(ix = selectedItems.length; ix--;) {
+                if(incomingItemIds.hasOwnProperty(selectedItems[ix][idAttr])) {
+                  selectedItems.splice(ix, 1);
+                }
+              }
+
+              Array.prototype.push.apply(selectedItems, incomingItems);
+
               for(ix = ms.items.length; ix--;) {
                 ms.items[ix][selectedAttr] = true;
               }
