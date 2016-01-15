@@ -191,11 +191,9 @@ angular.module('ivh.multiSelect')
           var selectedAttr = ms.sel.selectedAttribute
             , ix;
           if(isSelected === false && ms.filterString === '') {
-            for(ix = ms.items.length; ix--;) {
-              if(ms.items[ix][selectedAttr]) {
-                ms.items[ix][selectedAttr] = false;
-                ms.sel.onChange(ms.items[ix]);
-              }
+            for(ix = selectedItems.length; ix--;) {
+              selectedItems[ix][selectedAttr] = false;
+              ms.sel.onChange(selectedItems[ix]);
             }
             selectedItems.length = 0;
           } else {
