@@ -590,12 +590,12 @@ describe('Directive: ivhMultiSelectAsync', function() {
     });
 
     it('should only remove items in the filtered set if there is a filter', inject(function($timeout) {
-      var mySelection = scope.mySelection = [{id: 4, label: 'Four'}, {id: 5, label: 'Five'}];
+      var mySelection = scope.mySelection = [{id: 13, label: 'Thirteen'}, {id: 5, label: 'Five'}];
       var $el = c(tpl);
       $el.find('button').click();
 
       var $msFilter = $el.find('input[type=text]');
-      $msFilter.val('Four');
+      $msFilter.val('Thirteen');
       $msFilter.change();
       $timeout.flush();
 
