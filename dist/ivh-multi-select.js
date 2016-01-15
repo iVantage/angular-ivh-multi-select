@@ -187,9 +187,10 @@ angular.module('ivh.multiSelect')
          * cluster.
          */
         ms.selectAllVisible = function(isSelected) {
+          isSelected = angular.isDefined(isSelected) ?  isSelected : true;
           var selectedAttr = ms.sel.selectedAttribute
             , ix;
-          if(isSelected === false) {
+          if(isSelected === false && ms.filterString === '') {
             for(ix = ms.items.length; ix--;) {
               if(ms.items[ix][selectedAttr]) {
                 ms.items[ix][selectedAttr] = false;
@@ -229,10 +230,12 @@ angular.module('ivh.multiSelect')
                 }
               }
 
-              Array.prototype.push.apply(selectedItems, incomingItems);
+              if(isSelected) {
+                Array.prototype.push.apply(selectedItems, incomingItems);
+              }
 
               for(ix = ms.items.length; ix--;) {
-                ms.items[ix][selectedAttr] = true;
+                ms.items[ix][selectedAttr] = isSelected;
               }
             });
           }
