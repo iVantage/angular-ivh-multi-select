@@ -468,6 +468,29 @@ describe('Directive: ivhMultiSelectAsync', function() {
       };
 
       spy = scope.fetcher = jasmine.createSpy('fetcher').and.callFake(function(args) {
+        if('Thirteen' === args.filter && 0 === args.page) {
+          return {
+            page: 0,
+            pageSize: 7,
+            totalCount: 1,
+            items: [{id: 13, label: 'Thirteen'}]
+          };
+        }
+
+        if('Thirteen' === args.filter && 1 === args.page) {
+          return {
+            page: 1,
+            pageSize: 7,
+            totalCount: 0,
+            items: []
+          };
+        }
+
+        if('Send Dups!' === args.filter) {
+          // Note page0 is sent twice for first and second page requests
+          return angular.copy(page0);
+        }
+
         if(7 === args.pageSize) {
           return 0 === args.page ? half0 : half1;
         }
@@ -514,6 +537,41 @@ describe('Directive: ivhMultiSelectAsync', function() {
       scope.$apply();
       expect(mySelection.length).toBe(13);
     });
+
+    it('should preserve previous selections', inject(function($timeout) {
+      var mySelection = scope.mySelection = [{id: 4, label: 'Four'}];
+      var $el = c(tpl);
+      $el.find('button').click();
+
+      var $msFilter = $el.find('input[type=text]');
+      $msFilter.val('Thirteen');
+      $msFilter.change();
+      $timeout.flush();
+
+      $el.find('button:contains("All")').click();
+      scope.$apply();
+
+      expect(mySelection).toEqual([
+        jasmine.objectContaining({id: 4}),
+        jasmine.objectContaining({id: 13})
+      ]);
+    }));
+
+    it('should guard against incoming duplicates', inject(function($timeout) {
+      var mySelection = scope.mySelection = [];
+      var $el = c(tpl);
+      $el.find('button').click();
+
+      var $msFilter = $el.find('input[type=text]');
+      $msFilter.val('Send Dups!');
+      $msFilter.change();
+      $timeout.flush();
+
+      $el.find('button:contains("All")').click();
+      scope.$apply();
+
+      expect(mySelection.length).toBe(3);
+    }));
 
     it('should remove all selected items when the remove button is clicked', function() {
       var mySelection = scope.mySelection = [{id: 4, label: 'Four'}];
