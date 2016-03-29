@@ -210,4 +210,37 @@ describe('Directive: ivhMultiSelect', function() {
 
     expect(scope.selectedItems.length).toBe(1);
   });
+
+  it('should show the all/none buttons when multi-select is enabled', function() {
+    scope.items = [{label: 'foo'}];
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    expect($el.find('button:contains("All")').length).toBe(1);
+    expect($el.find('button:contains("None")').length).toBe(1);
+  });
+
+  it('should not show the all/none buttons when multi-select is disabled', function() {
+    scope.items = [{label: 'foo'}];
+
+    var $el = c([
+      '<div ivh-multi-select',
+          'ivh-multi-select-items="items"',
+          'selection-model-mode="\'single\'">',
+        'Blargus',
+      '</div>'
+    ]);
+
+    $el.find('button').click();
+
+    expect($el.find('button:contains("All")').length).toBe(0);
+    expect($el.find('button:contains("None")').length).toBe(0);
+  });
 });

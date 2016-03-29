@@ -1,14 +1,14 @@
 <a class="ms-tools">
   <button class="btn btn-default btn-sm"
       ng-click="ms.enableMultiSelect && ms.selectAllVisible()"
-      ng-class="{disabled: !ms.enableMultiSelect}">
+      ng-if="ms.enableMultiSelect">
     <span class="glyphicon glyphicon-ok"></span>
     All
   </button>
 
   <button class="btn btn-default btn-sm"
       ng-click="ms.enableMultiSelect && ms.selectAllVisible(false)"
-      ng-class="{disabled: !ms.enableMultiSelect}">
+      ng-if="ms.enableMultiSelect">
     <span class="glyphicon glyphicon-remove"></span>
     None
   </button>
