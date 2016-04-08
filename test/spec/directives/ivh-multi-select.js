@@ -243,4 +243,71 @@ describe('Directive: ivhMultiSelect', function() {
     expect($el.find('button:contains("All")').length).toBe(0);
     expect($el.find('button:contains("None")').length).toBe(0);
   });
+
+  describe('filtering', function() {
+    var doFilter = function($el, str) {
+      var $msFilter = $el.find('input[type=text]');
+      $msFilter.val(str);
+      $msFilter.change();
+      inject(function($timeout) {
+        $timeout.flush();
+      });
+    };
+
+    it('should filter by label attribute', function() {
+      scope.items = [{label: 'foo'}, {label: 'bar'}];
+
+      var $el = c([
+        '<div ivh-multi-select',
+            'ivh-multi-select-items="items">',
+          'Blargus',
+        '</div>'
+      ]);
+
+      $el.find('button').click();
+
+      doFilter($el, 'foo');
+
+      var msItems = $el.find('li.ms-item');
+      expect(msItems.length).toBe(1);
+    });
+
+    it('should filter by label expression', function() {
+      scope.items = [{name: 'foo'}, {name: 'bar'}];
+
+      var $el = c([
+        '<div ivh-multi-select',
+            'ivh-multi-select-items="items"',
+            'ivh-multi-select-label-expression="\'{{item.name}}ey\'">',
+          'Blargus',
+        '</div>'
+      ]);
+
+      $el.find('button').click();
+
+      doFilter($el, 'fooey');
+
+      var msItems = $el.find('li.ms-item');
+      expect(msItems.length).toBe(1);
+    });
+
+    it('should not consider other attributes when filtering', function() {
+      scope.items = [{label: 'foo', secret: 'wow'}, {label: 'bar'}];
+
+      var $el = c([
+        '<div ivh-multi-select',
+            'ivh-multi-select-items="items">',
+          'Blargus',
+        '</div>'
+      ]);
+
+      $el.find('button').click();
+
+      doFilter($el, 'wow');
+
+      var msItems = $el.find('li.ms-item');
+      expect(msItems.length).toBe(0);
+    });
+
+  });
 });
