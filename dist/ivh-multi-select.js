@@ -490,7 +490,7 @@ angular.module('ivh.multiSelect')
         selOnChange: '&selectionModelOnChange'
       },
       restrict: 'AE',
-      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}"\nivh-multi-select-collapsable>\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation" ivh-multi-select-tools></li>\n<li role="presentation" ivh-multi-select-filter></li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | filter:ms.filterString) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.sel.onChange(item)"\nselection-model-selected-items="ms.sel.selectedItems">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length"\nivh-multi-select-no-results>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
+      template: '\n<div class="ivh-multi-select dropdown" ng-class="{open: ms.isOpen}"\nivh-multi-select-collapsable>\n<button class="btn btn-default dropdown-toggle" type="button"\nivh-multi-select-stay-open\nng-click="ms.isOpen = !ms.isOpen">\n<span ng-transclude></span>\n<span class="caret"></span>\n</button>\n<ul class="dropdown-menu" role="menu" ng-if="ms.isOpen"\nivh-multi-select-stay-open>\n<li role="presentation" ivh-multi-select-tools></li>\n<li role="presentation" ivh-multi-select-filter></li>\n<li role="presentation" class="divider"></li>\n<li role="presentation" class="ms-item"\nng-repeat="item in ms.items = (items | ivhMultiSelectLabelFilter:ms) | ivhMultiSelectPaginate:ms.ixPage:ms.sizePage"\nselection-model\nselection-model-mode="ms.sel.mode"\nselection-model-type="ms.sel.type"\nselection-model-selected-attribute="ms.sel.selectedAttribute"\nselection-model-on-change="ms.sel.onChange(item)"\nselection-model-selected-items="ms.sel.selectedItems">\n<a role="menuitem">\n<!-- Must stop propagation on checkbox clicks when nested within the `a`\ntag otherwise `a` fires a click too and undoes the first click. We\nwant to honor the actual checkbox click. -->\n<input type="checkbox" ng-click="$event.stopPropagation()" />\n{{:: ms.getLabelFor(item)}}\n</a>\n</li>\n<li role="presentation" ng-hide="ms.items.length"\nivh-multi-select-no-results>\n</li>\n<li role="presentation" ng-if="ms.hasPager && ms.items.length > ms.sizePage">\n<div class="text-center"\nivh-pager\nivh-pager-total="ms.items.length"\nivh-pager-page-number="ms.ixPage"\nivh-pager-page-size="ms.sizePage"\nivh-pager-button-size="\'sm\'">\n</div>\n</li>\n</ul>\n</div>\n',
       transclude: true,
       controllerAs: 'ms',
       controller: ['$document', '$scope', 'ivhMultiSelectCore',
@@ -569,6 +569,39 @@ angular.module('ivh.multiSelect')
       return idsList;
     };
   }]);
+
+
+
+/**
+ * For filtering items by calculated labels
+ *
+ * @package ivh.multiSelect
+ * @copyright 2016 iVantage Health Analytics, Inc.
+ */
+
+angular.module('ivh.multiSelect')
+  .filter('ivhMultiSelectLabelFilter', [function(selectionModelOptions) {
+    'use strict';
+
+    return function(items, ctrl) {
+      var str = ctrl.filterString;
+
+      if(!items || !str) {
+        return items;
+      }
+
+      var filtered = [];
+
+      angular.forEach(items, function(item) {
+        if(ctrl.getLabelFor(item).indexOf(str) > -1) {
+          filtered.push(item);
+        }
+      });
+
+      return filtered;
+    };
+  }]);
+
 
 
 
