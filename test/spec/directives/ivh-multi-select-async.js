@@ -503,7 +503,8 @@ describe('Directive: ivhMultiSelectAsync', function() {
         '<div ivh-multi-select-async',
             'ivh-multi-select-fetcher="fetcher"',
             'ivh-multi-select-selected-items="mySelection"',
-            'selection-model-mode="\'multi-additive\'">',
+            'selection-model-mode="\'multi-additive\'"',
+            'selection-model-on-change="onChange(item)">',
           'Blargus',
         '</div>'
       ];
@@ -606,6 +607,16 @@ describe('Directive: ivhMultiSelectAsync', function() {
         jasmine.objectContaining({id: 5})
       ]);
     }));
+
+    it('should fire `on-change` for newly selected items (non-visible)', function() {
+      var changedItems = [];
+      scope.onChange = function(item) { changedItems.push(item); };
+      var $el = c(tpl);
+      $el.find('button').click();
+      $el.find('button:contains("All")').click();
+      scope.$apply();
+      expect(changedItems.length).toBe(6);
+    });
 
     it('should respect reference changes on the list of selected items', function() {
       scope.mySelection = [{id: 4, label: 'Four'}];
