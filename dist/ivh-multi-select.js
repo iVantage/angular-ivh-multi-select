@@ -212,7 +212,8 @@ angular.module('ivh.multiSelect')
             ])
             .then(function(res) {
               var incomingItems = res[0].items.concat(res[1].items)
-                , incomingItemIds = {};
+                , incomingItemIds = {}
+                , existingItemIds = {};
 
               for(ix = incomingItems.length; ix--;) {
                 var id = incomingItems[ix][idAttr];
@@ -224,6 +225,7 @@ angular.module('ivh.multiSelect')
 
               for(ix = selectedItems.length; ix--;) {
                 if(incomingItemIds.hasOwnProperty(selectedItems[ix][idAttr])) {
+                  existingItemIds[ selectedItems[ix][idAttr] ] = 1;
                   selectedItems.splice(ix, 1);
                 }
               }
@@ -234,6 +236,9 @@ angular.module('ivh.multiSelect')
 
               for(ix = ms.items.length; ix--;) {
                 ms.items[ix][selectedAttr] = isSelected;
+                if(!existingItemIds.hasOwnProperty(ms.items[ix][idAttr])) {
+                  ms.sel.onChange(ms.items[ix]);
+                }
               }
             });
           }
